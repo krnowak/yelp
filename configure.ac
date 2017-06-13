@@ -169,6 +169,7 @@ data/xslt/man2html.xsl
 data/xslt/yelp-common.xsl
 po/Makefile.in
 yelp.desktop.in
+search-provider/Makefile
 ])
 
 AC_OUTPUT
