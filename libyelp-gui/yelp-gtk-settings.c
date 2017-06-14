@@ -615,7 +615,7 @@ yelp_gtk_settings_get_default (void)
     static YelpGtkSettings *settings = NULL;
     g_mutex_lock (&mutex);
     if (settings == NULL) {
-        const gchar * yelp_skip_gui = g_getenv("YELP_SKIP_GUI");
+        const gchar * yelp_skip_gui = g_getenv ("YELP_SKIP_GUI");
         if (yelp_skip_gui) {
             settings = g_object_new (YELP_TYPE_SETTINGS, NULL);
         }
