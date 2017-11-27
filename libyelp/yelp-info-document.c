@@ -25,7 +25,6 @@
 
 #include <glib.h>
 #include <glib/gi18n.h>
-#include <gtk/gtk.h>
 #include <libxml/tree.h>
 
 #include "yelp-error.h"
@@ -52,7 +51,7 @@ struct _YelpInfoDocumentPrivate {
     GThread    *thread;
 
     xmlDocPtr   xmldoc;
-    GtkTreeModel  *sections;
+    GNode      *sections;
 
     gboolean    process_running;
     gboolean    transform_running;
@@ -90,10 +89,8 @@ static void           transform_finalized       (YelpInfoDocument     *info,
                                                  gpointer              transform);
 
 static void           info_document_process     (YelpInfoDocument     *info);
-static gboolean       info_sections_visit       (GtkTreeModel         *model,
-                                                 GtkTreePath          *path,
-                                                 GtkTreeIter          *iter,
-                                                 YelpInfoDocument     *info);
+static gboolean       info_sections_visit       (GNode                *iter,
+                                                 gpointer              user_data);
 static void           info_document_disconnect  (YelpInfoDocument     *info);
 
 
@@ -129,15 +126,8 @@ yelp_info_document_dispose (GObject *object)
 {
     YelpInfoDocumentPrivate *priv = GET_PRIV (object);
 
-    if (priv->sections) {
-        g_object_unref (priv->sections);
-        priv->sections = NULL;
-    }
-
-    if (priv->transform) {
-        g_object_unref (priv->transform);
-        priv->transform = NULL;
-    }
+    g_clear_pointer (&priv->sections, g_node_destroy);
+    g_clear_object (&priv->transform);
 
     G_OBJECT_CLASS (yelp_info_document_parent_class)->dispose (object);
 }
@@ -161,12 +151,14 @@ yelp_info_document_finalize (GObject *object)
 /******************************************************************************/
 
 YelpDocument *
-yelp_info_document_new (YelpUri *uri)
+yelp_info_document_new (YelpUri      *uri,
+                        YelpSettings *settings)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     return (YelpDocument *) g_object_new (YELP_TYPE_INFO_DOCUMENT,
                                           "document-uri", uri,
+                                          "settings", settings,
                                           NULL);
 }
 
@@ -349,7 +341,7 @@ info_document_process (YelpInfoDocument *info)
     GFile *file = NULL;
     gchar *filepath = NULL;
     GError *error;
-    gint  params_i = 0;
+    gsize params_i = 0;
     gchar **params = NULL;
 
     file = yelp_uri_get_file (yelp_document_get_uri ((YelpDocument *) info));
@@ -372,11 +364,14 @@ info_document_process (YelpInfoDocument *info)
         goto done;
     }
 
-    priv->sections = (GtkTreeModel *) yelp_info_parser_parse_file (filepath);
-    gtk_tree_model_foreach (priv->sections,
-                            (GtkTreeModelForeachFunc) info_sections_visit,
-                            info);
-    priv->xmldoc = yelp_info_parser_parse_tree ((GtkTreeStore *) priv->sections);
+    priv->sections = yelp_info_parser_parse_file (filepath);
+    g_node_traverse (priv->sections,
+                     G_PRE_ORDER,
+                     G_TRAVERSE_ALL,
+                     -1,
+                     info_sections_visit,
+                     info);
+    priv->xmldoc = yelp_info_parser_parse_tree (priv->sections);
 
     if (priv->xmldoc == NULL) {
 	error = g_error_new (YELP_ERROR, YELP_ERROR_PROCESSING,
@@ -407,7 +402,7 @@ info_document_process (YelpInfoDocument *info)
                           (GCallback) transform_error,
                           info);
 
-    params = yelp_settings_get_all_params (yelp_settings_get_default (), 0, &params_i);
+    params = yelp_settings_get_all_params (yelp_document_get_settings (YELP_DOCUMENT (info)), 0, &params_i);
 
     priv->transform_running = TRUE;
     yelp_transform_start (priv->transform,
@@ -424,34 +419,35 @@ info_document_process (YelpInfoDocument *info)
 }
 
 static gboolean
-info_sections_visit (GtkTreeModel     *model,
-                     GtkTreePath      *path,
-                     GtkTreeIter      *iter,
-                     YelpInfoDocument *info)
+info_sections_visit (GNode    *iter,
+                     gpointer  user_data)
 {
-    YelpInfoDocumentPrivate *priv = GET_PRIV (info);
-    gchar *page_id, *title;
+    YelpInfoDocument *info;
+    YelpInfoDocumentPrivate *priv;
+    YelpInfoPageData *page_data;
 
-    gtk_tree_model_get (model, iter,
-                        INFO_PARSER_COLUMN_PAGE_NO, &page_id,
-                        INFO_PARSER_COLUMN_PAGE_NAME, &title,
-                        -1);
-    yelp_document_set_page_id ((YelpDocument *) info, page_id, page_id);
-    yelp_document_set_page_title ((YelpDocument *) info, page_id, title);
+    if (iter->data == NULL)
+        return FALSE;
+
+    info = YELP_INFO_DOCUMENT (user_data);
+    priv = GET_PRIV (info);
+    page_data = (YelpInfoPageData *) iter->data;
+
+    yelp_document_set_page_id ((YelpDocument *) info, page_data->no, page_data->no);
+    yelp_document_set_page_title ((YelpDocument *) info, page_data->no, page_data->name);
 
     if (priv->root_id == NULL) {
-        priv->root_id = g_strdup (page_id);
-        yelp_document_set_page_id ((YelpDocument *) info, NULL, page_id);
+        priv->root_id = g_strdup (page_data->no);
+        yelp_document_set_page_id ((YelpDocument *) info, NULL, page_data->no);
     }
-    yelp_document_set_root_id ((YelpDocument *) info, page_id, priv->root_id);
+    yelp_document_set_root_id ((YelpDocument *) info, page_data->no, priv->root_id);
 
     if (priv->visit_prev_id != NULL) {
-        yelp_document_set_prev_id ((YelpDocument *) info, page_id, priv->visit_prev_id);
-        yelp_document_set_next_id ((YelpDocument *) info, priv->visit_prev_id, page_id);
+        yelp_document_set_prev_id ((YelpDocument *) info, page_data->no, priv->visit_prev_id);
+        yelp_document_set_next_id ((YelpDocument *) info, priv->visit_prev_id, page_data->no);
         g_free (priv->visit_prev_id);
     }
-    priv->visit_prev_id = page_id;
-    g_free (title);
+    priv->visit_prev_id = g_strdup (page_data->no);
     return FALSE;
 }
 

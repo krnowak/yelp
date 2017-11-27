@@ -24,7 +24,6 @@
 
 #include <glib.h>
 #include <glib/gi18n.h>
-#include <gtk/gtk.h>
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
 #include <libxml/xinclude.h>
@@ -202,7 +201,8 @@ yelp_docbook_document_finalize (GObject *object)
 /******************************************************************************/
 
 YelpDocument *
-yelp_docbook_document_new (YelpUri *uri)
+yelp_docbook_document_new (YelpUri      *uri,
+                           YelpSettings *settings)
 {
     YelpDocbookDocument *docbook;
     YelpDocbookDocumentPrivate *priv;
@@ -213,6 +213,7 @@ yelp_docbook_document_new (YelpUri *uri)
 
     docbook = (YelpDocbookDocument *) g_object_new (YELP_TYPE_DOCBOOK_DOCUMENT,
                                                     "document-uri", uri,
+                                                    "settings", settings,
                                                     NULL);
     priv = GET_PRIV (docbook);
 
@@ -312,7 +313,7 @@ docbook_process (YelpDocbookDocument *docbook)
     xmlChar *id = NULL;
     xmlParserCtxtPtr parserCtxt = NULL;
     GError *error;
-    gint  params_i = 0;
+    gsize params_i = 0;
     gchar **params = NULL;
 
     debug_print (DB_FUNCTION, "entering\n");
@@ -431,10 +432,9 @@ docbook_process (YelpDocbookDocument *docbook)
                           (GCallback) transform_error,
                           docbook);
 
-    params = yelp_settings_get_all_params (yelp_settings_get_default (), 2, &params_i);
+    params = yelp_settings_get_all_params (yelp_document_get_settings (document), 2, &params_i);
     params[params_i++] = g_strdup ("db.chunk.max_depth");
     params[params_i++] = g_strdup_printf ("%i", priv->max_depth);
-    params[params_i] = NULL;
 
     priv->transform_running = TRUE;
     yelp_transform_start (priv->transform,

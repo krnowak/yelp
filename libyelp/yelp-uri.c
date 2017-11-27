@@ -29,7 +29,6 @@
 #include <gio/gio.h>
 
 #include "yelp-uri.h"
-#include "yelp-settings.h"
 
 static void           yelp_uri_dispose           (GObject        *object);
 static void           yelp_uri_finalize          (GObject        *object);
@@ -80,6 +79,8 @@ struct _YelpUriPrivate {
     gchar                *frag_id;
 
     GHashTable           *query;
+
+    YelpUriResolveStubs   resolve_stubs;
 
     /* Unresolved */
     YelpUri              *res_base;
@@ -189,14 +190,10 @@ yelp_uri_finalize (GObject *object)
 
 /******************************************************************************/
 
-YelpUri *
-yelp_uri_new (const gchar *arg)
-{
-    return yelp_uri_new_relative (NULL, arg);
-}
-
-YelpUri *
-yelp_uri_new_relative (YelpUri *base, const gchar *arg)
+static YelpUri *
+yelp_uri_new_internal_take_arg (YelpUri *base,
+                                gchar *arg,
+                                YelpUriResolveStubs *optional_resolve_stubs)
 {
     YelpUri *uri;
     YelpUriPrivate *priv;
@@ -205,11 +202,35 @@ yelp_uri_new_relative (YelpUri *base, const gchar *arg)
 
     priv = GET_PRIV (uri);
     priv->doctype = YELP_URI_DOCUMENT_TYPE_UNRESOLVED;
-    if (base)
+    g_assert (base != NULL || optional_resolve_stubs != NULL);
+    if (base) {
+        YelpUriPrivate *base_priv;
+
+        base_priv = GET_PRIV (base);
         priv->res_base = g_object_ref (base);
-    priv->res_arg = g_strdup (arg);
+        priv->resolve_stubs = base_priv->resolve_stubs;
+    } else {
+        priv->resolve_stubs = *optional_resolve_stubs;
+    }
+    priv->res_arg = arg;
 
     return uri;
+}
+
+YelpUri *
+yelp_uri_new (const gchar *arg,
+              YelpUriResolveStubs resolve_stubs)
+{
+    return yelp_uri_new_internal_take_arg (NULL,
+                                           g_strdup (arg),
+                                           &resolve_stubs);
+}
+
+YelpUri *
+yelp_uri_new_relative (YelpUri *base, const gchar *arg)
+{
+    g_return_val_if_fail (base != NULL, NULL);
+    return yelp_uri_new_internal_take_arg (base, g_strdup (arg), NULL);
 }
 
 YelpUri *
@@ -217,19 +238,17 @@ yelp_uri_new_search (YelpUri      *base,
                      const gchar  *text)
 {
     YelpUri *uri;
-    YelpUriPrivate *priv;
     gchar *tmp;
+    gchar *arg;
 
-    uri = (YelpUri *) g_object_new (YELP_TYPE_URI, NULL);
+    g_return_val_if_fail (base != NULL, NULL);
 
-    priv = GET_PRIV (uri);
-    priv->doctype = YELP_URI_DOCUMENT_TYPE_UNRESOLVED;
-    if (base)
-        priv->res_base = g_object_ref (base);
     tmp = g_uri_escape_string (text, NULL, FALSE);
-    priv->res_arg = g_strconcat("xref:search=", tmp, NULL);
+    arg = g_strconcat("xref:search=", tmp, NULL);
+    uri = yelp_uri_new_internal_take_arg (base,
+                                          g_steal_pointer (&arg),
+                                          NULL);
     g_free (tmp);
-
     return uri;
 }
 
@@ -720,6 +739,7 @@ resolve_data_dirs (YelpUri      *ret,
     else {
         priv->gfile = g_file_new_for_path (filename);
         priv->search_path = searchpath;
+        g_free (filename);
     }
 }
 
@@ -1395,7 +1415,7 @@ resolve_gfile (YelpUri *uri, const gchar *query, const gchar *hash)
                 build_ghelp_fulluri (uri);
                 g_free (path);
             }
-            else if (yelp_settings_get_editor_mode (yelp_settings_get_default ())) {
+            else if (priv->resolve_stubs == YELP_URI_RESOLVE_STUBS_ALLOW) {
                 g_object_unref (child);
                 child = g_file_get_child (priv->gfile, "index.page.stub");
                 if (g_file_query_exists (child, NULL)) {

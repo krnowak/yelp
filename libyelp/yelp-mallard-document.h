@@ -44,6 +44,7 @@ struct _YelpMallardDocumentClass {
 };
 
 GType           yelp_mallard_document_get_type     (void);
-YelpDocument *  yelp_mallard_document_new          (YelpUri  *uri);
+YelpDocument *  yelp_mallard_document_new          (YelpUri      *uri,
+                                                    YelpSettings *settings);
 
 #endif /* __YELP_MALLARD_DOCUMENT_H__ */

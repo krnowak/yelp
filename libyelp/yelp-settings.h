@@ -22,28 +22,9 @@
 #define __YELP_SETTINGS_H__
 
 #include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
-
-#define YELP_TYPE_SETTINGS         (yelp_settings_get_type ())
-#define YELP_SETTINGS(o)           (G_TYPE_CHECK_INSTANCE_CAST ((o), YELP_TYPE_SETTINGS, YelpSettings))
-#define YELP_SETTINGS_CLASS(k)     (G_TYPE_CHECK_CLASS_CAST ((k), YELP_TYPE_SETTINGS, YelpSettingsClass))
-#define YELP_IS_SETTINGS(o)        (G_TYPE_CHECK_INSTANCE_TYPE ((o), YELP_TYPE_SETTINGS))
-#define YELP_IS_SETTINGS_CLASS(k)  (G_TYPE_CHECK_CLASS_TYPE ((k), YELP_TYPE_SETTINGS))
-#define YELP_SETTINGS_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), YELP_TYPE_SETTINGS, YelpSettingsClass))
-
-typedef struct _YelpSettings      YelpSettings;
-typedef struct _YelpSettingsClass YelpSettingsClass;
-typedef struct _YelpSettingsPriv  YelpSettingsPriv;
-
-struct _YelpSettings {
-    GObject           parent;
-    YelpSettingsPriv *priv;
-};
-
-struct _YelpSettingsClass {
-    GObjectClass      parent_class;
-};
 
 typedef enum {
     YELP_SETTINGS_COLOR_BASE,
@@ -60,14 +41,9 @@ typedef enum {
     YELP_SETTINGS_COLOR_RED_BORDER,
     YELP_SETTINGS_COLOR_YELLOW_BASE,
     YELP_SETTINGS_COLOR_YELLOW_BORDER,
-    YELP_SETTINGS_NUM_COLORS
+    YELP_SETTINGS_NUM_COLORS,
+    YELP_SETTINGS_NUM_COLORS_START = 0,
 } YelpSettingsColor;
-
-typedef enum {
-    YELP_SETTINGS_FONT_VARIABLE,
-    YELP_SETTINGS_FONT_FIXED,
-    YELP_SETTINGS_NUM_FONTS
-} YelpSettingsFont;
 
 typedef enum {
     YELP_SETTINGS_ICON_BUG,
@@ -75,58 +51,40 @@ typedef enum {
     YELP_SETTINGS_ICON_NOTE,
     YELP_SETTINGS_ICON_TIP,
     YELP_SETTINGS_ICON_WARNING,
-    YELP_SETTINGS_NUM_ICONS
+    YELP_SETTINGS_NUM_ICONS,
+    YELP_SETTINGS_NUM_ICONS_START = 0,
 } YelpSettingsIcon;
 
-GType               yelp_settings_get_type             (void);
-YelpSettings *      yelp_settings_get_default          (void);
+typedef enum {
+  YELP_SETTINGS_TEXT_DIRECTION_RTL,
+  YELP_SETTINGS_TEXT_DIRECTION_LTR,
+} YelpSettingsTextDirection;
 
-gchar *             yelp_settings_get_color            (YelpSettings       *settings,
-                                                        YelpSettingsColor   color);
-gchar **            yelp_settings_get_colors           (YelpSettings       *settings);
-void                yelp_settings_set_colors           (YelpSettings       *settings,
-                                                        YelpSettingsColor   first_color,
-                                                        ...);
-const gchar*        yelp_settings_get_color_param      (YelpSettingsColor   color);
+#define YELP_TYPE_SETTINGS         (yelp_settings_get_type ())
 
+G_DECLARE_INTERFACE (YelpSettings, yelp_settings, YELP, SETTINGS, GObject)
 
-gchar *             yelp_settings_get_font             (YelpSettings       *settings,
-                                                        YelpSettingsFont    font);
-gchar *             yelp_settings_get_font_family      (YelpSettings       *settings,
-                                                        YelpSettingsFont    font);
-gint                yelp_settings_get_font_size        (YelpSettings       *settings,
-                                                        YelpSettingsFont    font);
-void                yelp_settings_set_fonts            (YelpSettings       *settings,
-                                                        YelpSettingsFont    first_font,
-                                                        ...);
-gint                yelp_settings_get_font_adjustment  (YelpSettings       *settings);
-void                yelp_settings_set_font_adjustment  (YelpSettings       *settings,
-                                                        gint                adjustment);
+struct _YelpSettingsInterface {
+    GTypeInterface g_iface;
 
-gint                yelp_settings_get_icon_size        (YelpSettings       *settings);
-void                yelp_settings_set_icon_size        (YelpSettings       *settings,
-                                                        gint                size);
-gchar *             yelp_settings_get_icon             (YelpSettings       *settings,
-                                                        YelpSettingsIcon    icon);
-void                yelp_settings_set_icons            (YelpSettings       *settings,
-                                                        YelpSettingsIcon    first_icon,
-                                                        ...);
-const gchar *       yelp_settings_get_icon_param       (YelpSettingsIcon    icon);
+    gchar **                  (*get_colors)         (YelpSettings *settings);
+    gint                      (*get_icon_size)      (YelpSettings *settings);
+    gchar **                  (*get_icons)          (YelpSettings *settings);
+    gboolean                  (*get_editor_mode)    (YelpSettings *settings);
+    gchar **                  (*get_tokens)         (YelpSettings *settings);
+    YelpSettingsTextDirection (*get_text_direction) (YelpSettings *settings);
+    gchar *                   (*get_uri_for_gicon)  (YelpSettings *settings,
+                                                     GIcon        *icon);
+};
 
-gchar **            yelp_settings_get_all_params       (YelpSettings       *settings,
-                                                        gint                extra,
-                                                        gint               *end);
-
-gboolean            yelp_settings_get_show_text_cursor (YelpSettings       *settings);
-void                yelp_settings_set_show_text_cursor (YelpSettings       *settings,
-                                                        gboolean            show);
-
-gboolean            yelp_settings_get_editor_mode      (YelpSettings       *settings);
-void                yelp_settings_set_editor_mode      (YelpSettings       *settings,
-                                                        gboolean            editor_mode);
-
-gint                yelp_settings_cmp_icons            (const gchar        *icon1,
-                                                        const gchar        *icon2);
+gchar **                  yelp_settings_get_colors         (YelpSettings *settings);
+gboolean                  yelp_settings_get_editor_mode    (YelpSettings *settings);
+gchar **                  yelp_settings_get_all_params     (YelpSettings *settings,
+                                                            gsize         extra,
+                                                            gsize        *end);
+YelpSettingsTextDirection yelp_settings_get_text_direction (YelpSettings *settings);
+gchar *                   yelp_settings_get_uri_for_gicon  (YelpSettings *settings,
+                                                            GIcon        *icon);
 
 G_END_DECLS
 

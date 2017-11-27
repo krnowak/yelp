@@ -50,7 +50,8 @@ struct _YelpSimpleDocumentClass {
 };
 
 GType             yelp_simple_document_get_type       (void);
-YelpDocument *    yelp_simple_document_new            (YelpUri  *uri);
+YelpDocument *    yelp_simple_document_new            (YelpUri      *uri,
+                                                       YelpSettings *settings);
 
 G_END_DECLS
 

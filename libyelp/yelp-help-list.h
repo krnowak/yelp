@@ -44,6 +44,7 @@ struct _YelpHelpListClass {
 };
 
 GType           yelp_help_list_get_type     (void);
-YelpDocument *  yelp_help_list_new          (YelpUri *uri);
+YelpDocument *  yelp_help_list_new          (YelpUri      *uri,
+                                             YelpSettings *settings);
 
 #endif /* __YELP_HELP_LIST_H__ */

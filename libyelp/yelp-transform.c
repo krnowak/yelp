@@ -229,6 +229,7 @@ yelp_transform_finalize (GObject *object)
 
     g_strfreev (priv->params);
     g_mutex_clear (&priv->mutex);
+    g_free (priv->stylesheet_file);
 
     G_OBJECT_CLASS (yelp_transform_parent_class)->finalize (object);
 }
