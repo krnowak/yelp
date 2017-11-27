@@ -27,17 +27,23 @@ PKG_CHECK_MODULES(YELP,
 [
 	gio-2.0 >= 2.38.0
 	gio-unix-2.0
-	gtk+-unix-print-3.0
-	gtk+-3.0 >= 3.13.3
 	libxml-2.0 >= 2.6.5
 	libxslt >= 1.1.4
 	libexslt >= 0.8.1
 	sqlite3
-	webkit2gtk-4.0 >= 2.19.2
 	yelp-xsl >= 3.27.1
 ])
 AC_SUBST([YELP_CFLAGS])
 AC_SUBST([YELP_LIBS])
+
+PKG_CHECK_MODULES(YELP_GUI,
+[
+	gtk+-unix-print-3.0
+	gtk+-3.0 >= 3.13.3
+	webkit2gtk-4.0 >= 2.19.2
+])
+AC_SUBST([YELP_GUI_CFLAGS])
+AC_SUBST([YELP_GUI_LIBS])
 
 
 # Initialize libtool
