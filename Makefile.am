@@ -18,7 +18,8 @@ libyelp_libyelp_la_SOURCES = \
 	libyelp/yelp-man-parser.c \
 	libyelp/yelp-sqlite-storage.c \
 	libyelp/yelp-storage.c \
-	libyelp/yelp-transform.c
+	libyelp/yelp-transform.c \
+	libyelp/yelp-uri.c
 
 nodist_libyelp_libyelp_la_SOURCES = \
 	libyelp/yelp-types.c
@@ -56,7 +57,8 @@ libyelp_libyelp_la_headers = \
 	$(top_srcdir)/libyelp/yelp-bookmarks.h \
 	$(top_srcdir)/libyelp/yelp-sqlite-storage.h \
 	$(top_srcdir)/libyelp/yelp-storage.h \
-	$(top_srcdir)/libyelp/yelp-transform.h
+	$(top_srcdir)/libyelp/yelp-transform.h \
+	$(top_srcdir)/libyelp/yelp-uri.h
 
 libyelp_includedir = $(includedir)/libyelp/
 
@@ -106,7 +108,6 @@ libyelp_gui_libyelp_gui_la_SOURCES = \
 	libyelp-gui/yelp-search-entry.c \
 	libyelp-gui/yelp-settings.c \
 	libyelp-gui/yelp-simple-document.c \
-	libyelp-gui/yelp-uri.c \
 	libyelp-gui/yelp-uri-builder.c \
 	libyelp-gui/yelp-view.c
 
@@ -146,7 +147,6 @@ libyelp_gui_libyelp_gui_la_headers = \
 	$(top_srcdir)/libyelp-gui/yelp-search-entry.h \
 	$(top_srcdir)/libyelp-gui/yelp-settings.h \
 	$(top_srcdir)/libyelp-gui/yelp-simple-document.h \
-	$(top_srcdir)/libyelp-gui/yelp-uri.h \
 	$(top_srcdir)/libyelp-gui/yelp-uri-builder.h \
 	$(top_srcdir)/libyelp-gui/yelp-view.h
 
@@ -202,9 +202,8 @@ webextension_LTLIBRARIES = libyelp-gui/web-extension/libyelpwebextension.la
 webextensiondir = $(pkglibdir)/web-extensions
 
 libyelp_gui_web_extension_libyelpwebextension_la_SOURCES = \
-	libyelp-gui/yelp-settings.c \
 	libyelp-gui/yelp-uri-builder.c \
-	libyelp-gui/yelp-uri.c \
+	libyelp/yelp-uri.c \
 	libyelp-gui/web-extension/yelp-web-extension.c
 
 libyelp_gui_web_extension_libyelpwebextension_la_CFLAGS = \
