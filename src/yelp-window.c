@@ -690,6 +690,18 @@ action_ctrll (GSimpleAction *action,
 
 /******************************************************************************/
 
+static YelpUriResolveStubs
+get_resolve_stubs_from_settings (void)
+{
+    YelpSettings *settings;
+
+    settings = yelp_settings_get_default ();
+    if (yelp_settings_get_editor_mode (settings))
+        return YELP_URI_RESOLVE_STUBS_ALLOW;
+
+    return YELP_URI_RESOLVE_STUBS_FORBID;
+}
+
 static void
 window_drag_received (YelpWindow         *window,
                       GdkDragContext     *context,
@@ -702,7 +714,7 @@ window_drag_received (YelpWindow         *window,
 {
     gchar **uris = gtk_selection_data_get_uris (data);
     if (uris && uris[0]) {
-        YelpUri *uri = yelp_uri_new (uris[0]);
+        YelpUri *uri = yelp_uri_new (uris[0], get_resolve_stubs_from_settings ());
         yelp_window_load_uri (window, uri);
         g_object_unref (uri);
         g_strfreev (uris);
@@ -1203,7 +1215,7 @@ ctrll_entry_activate (GtkEntry    *entry,
                       YelpWindow  *window)
 {
     YelpWindowPrivate *priv = GET_PRIV (window);
-    YelpUri *uri = yelp_uri_new (gtk_entry_get_text (entry));
+    YelpUri *uri = yelp_uri_new (gtk_entry_get_text (entry), get_resolve_stubs_from_settings ());
 
     yelp_window_load_uri (window, uri);
     g_object_unref (uri);

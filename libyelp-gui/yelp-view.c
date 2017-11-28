@@ -638,11 +638,24 @@ yelp_view_new (void)
                        "settings", yelp_view_get_global_settings (), NULL));
 }
 
+static YelpUriResolveStubs
+get_resolve_stubs_from_settings (void)
+{
+    YelpSettings *settings;
+
+    settings = yelp_settings_get_default ();
+    if (yelp_settings_get_editor_mode (settings))
+        return YELP_URI_RESOLVE_STUBS_ALLOW;
+
+    return YELP_URI_RESOLVE_STUBS_FORBID;
+}
+
 void
 yelp_view_load (YelpView    *view,
                 const gchar *uri)
 {
-    YelpUri *yuri = yelp_uri_new (uri);
+    YelpUri *yuri = yelp_uri_new (uri,
+                                  get_resolve_stubs_from_settings ());
     yelp_view_load_uri (view, yuri);
     g_object_unref (yuri);
 }
@@ -835,7 +848,7 @@ help_uri_scheme_request_cb  (WebKitURISchemeRequest *request,
 
     uri_str = build_yelp_uri (webkit_uri_scheme_request_get_uri (request));
 
-    uri = yelp_uri_new (uri_str);
+    uri = yelp_uri_new (uri_str, get_resolve_stubs_from_settings ());
     g_free (uri_str);
 
     g_signal_connect (uri, "resolved", G_CALLBACK (help_cb_uri_resolved), request);
@@ -1611,7 +1624,7 @@ view_policy_decision_requested (YelpView                *view,
     request = webkit_navigation_action_get_request (action);
     fixed_uri = build_yelp_uri (webkit_uri_request_get_uri (request));
     if (webkit_navigation_action_get_navigation_type (action) == WEBKIT_NAVIGATION_TYPE_BACK_FORWARD) {
-        uri = yelp_uri_new (fixed_uri);
+        uri = yelp_uri_new (fixed_uri, get_resolve_stubs_from_settings ());
         priv->load_page_after_resolved = FALSE;
         yelp_view_resolve_uri (view, uri);
         g_object_unref (uri);

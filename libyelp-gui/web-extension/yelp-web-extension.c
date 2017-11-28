@@ -99,12 +99,17 @@ web_page_notify_uri (WebKitWebPage *web_page,
 {
     const gchar *uri = webkit_web_page_get_uri (web_page);
     gchar *yelp_uri;
+    YelpUriResolveStubs resolve_stubs;
 
     yelp_uri = build_yelp_uri (uri);
 
     if (current_uri)
         g_object_unref (current_uri);
-    current_uri = yelp_uri_new (yelp_uri);
+    resolve_stubs = GPOINTER_TO_INT (data) ?
+        YELP_URI_RESOLVE_STUBS_ALLOW :
+        YELP_URI_RESOLVE_STUBS_FORBID;
+    current_uri = yelp_uri_new (yelp_uri,
+                                resolve_stubs);
 
     if (!yelp_uri_is_resolved (current_uri))
         yelp_uri_resolve_sync (current_uri);
@@ -220,19 +225,20 @@ web_page_created_callback (WebKitWebExtension *extension,
 {
     g_signal_connect (web_page, "context-menu",
                       G_CALLBACK (web_page_context_menu),
-                      NULL);
+                      user_data);
     g_signal_connect (web_page, "send-request",
                       G_CALLBACK (web_page_send_request),
-                      NULL);
+                      user_data);
     g_signal_connect (web_page, "notify::uri",
                       G_CALLBACK (web_page_notify_uri),
-                      NULL);
+                      user_data);
 }
 
 G_MODULE_EXPORT void
-webkit_web_extension_initialize (WebKitWebExtension *extension)
+webkit_web_extension_initialize_with_user_data (WebKitWebExtension *extension,
+                                                GVariant *user_data)
 {
     g_signal_connect (extension, "page-created",
                       G_CALLBACK (web_page_created_callback),
-                      NULL);
+                      GINT_TO_POINTER (g_variant_get_boolean (user_data)));
 }

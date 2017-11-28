@@ -406,6 +406,17 @@ open_uri (YelpApplication *app,
     yelp_uri_resolve (uri);
 }
 
+static YelpUriResolveStubs
+get_resolve_stubs_from_settings (void)
+{
+    YelpSettings *settings;
+
+    settings = yelp_settings_get_default ();
+    if (yelp_settings_get_editor_mode (settings))
+        return YELP_URI_RESOLVE_STUBS_ALLOW;
+
+    return YELP_URI_RESOLVE_STUBS_FORBID;
+}
 
 static int
 yelp_application_command_line (GApplication            *application,
@@ -418,10 +429,10 @@ yelp_application_command_line (GApplication            *application,
     argv = g_application_command_line_get_arguments (cmdline, NULL);
 
     if (argv[1] == NULL)
-        open_uri (app, yelp_uri_new (DEFAULT_URI), FALSE, TRUE);
+        open_uri (app, yelp_uri_new (DEFAULT_URI, get_resolve_stubs_from_settings ()), FALSE, TRUE);
 
     for (i = 1; argv[i]; i++)
-        open_uri (app, yelp_uri_new (argv[i]), FALSE, FALSE);
+        open_uri (app, yelp_uri_new (argv[i], get_resolve_stubs_from_settings ()), FALSE, FALSE);
 
     g_strfreev (argv);
 
@@ -433,9 +444,9 @@ yelp_application_new_window (YelpApplication  *app,
                              const gchar      *uri)
 {
     if (uri)
-        open_uri (app, yelp_uri_new (uri), TRUE, FALSE);
+        open_uri (app, yelp_uri_new (uri, get_resolve_stubs_from_settings ()), TRUE, FALSE);
     else
-        open_uri (app, yelp_uri_new (DEFAULT_URI), TRUE, TRUE);
+        open_uri (app, yelp_uri_new (DEFAULT_URI, get_resolve_stubs_from_settings ()), TRUE, TRUE);
 }
 
 void
@@ -463,7 +474,7 @@ application_uri_resolved (YelpUri             *uri,
     if (gfile == NULL && data->fallback_help_list) {
         /* There is no file associated to the default uri, so we'll fallback
          * to help-list: if we're told to do so. */
-        open_uri (data->app, yelp_uri_new ("help-list:"), data->new, FALSE);
+        open_uri (data->app, yelp_uri_new ("help-list:", get_resolve_stubs_from_settings ()), data->new, FALSE);
         g_object_unref (uri);
         g_free (data);
         return;

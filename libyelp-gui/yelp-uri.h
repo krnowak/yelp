@@ -50,6 +50,11 @@ typedef enum {
     YELP_URI_DOCUMENT_TYPE_ERROR
 } YelpUriDocumentType;
 
+typedef enum {
+    YELP_URI_RESOLVE_STUBS_ALLOW,
+    YELP_URI_RESOLVE_STUBS_FORBID,
+} YelpUriResolveStubs;
+
 struct _YelpUri {
     GObject       parent;
 };
@@ -61,7 +66,8 @@ struct _YelpUriClass {
 
 GType                yelp_uri_get_type           (void);
 
-YelpUri *            yelp_uri_new                (const gchar  *arg);
+YelpUri *            yelp_uri_new                (const gchar         *arg,
+                                                  YelpUriResolveStubs  resolve_stubs);
 YelpUri *            yelp_uri_new_relative       (YelpUri      *base,
                                                   const gchar  *arg);
 YelpUri *            yelp_uri_new_search         (YelpUri      *base,

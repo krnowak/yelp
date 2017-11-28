@@ -163,7 +163,7 @@ static void run_test (gconstpointer data)
     newline = strchr (contents, '\n');
     curi = g_strndup (contents, newline - contents);
     uriv = g_strsplit (curi, " ", 2);
-    uri = yelp_uri_new (uriv[0]);
+    uri = yelp_uri_new (uriv[0], YELP_URI_RESOLVE_STUBS_FORBID);
     if (uriv[1] != NULL)
         uri = yelp_uri_new_relative (uri, uriv[1]);
     g_strfreev (uriv);
@@ -235,10 +235,10 @@ main (int argc, char **argv)
     }
     else {
         if (argc > 2) {
-            parent = yelp_uri_new (argv[1]);
+            parent = yelp_uri_new (argv[1], YELP_URI_RESOLVE_STUBS_FORBID);
             uri = yelp_uri_new_relative (parent, argv[2]);
         } else {
-            uri = yelp_uri_new (argv[1]);
+            uri = yelp_uri_new (argv[1], YELP_URI_RESOLVE_STUBS_FORBID);
         }
         if (uri) {
             gchar *orig;
