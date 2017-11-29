@@ -44,6 +44,7 @@ struct _YelpInfoDocumentClass {
 };
 
 GType           yelp_info_document_get_type     (void);
-YelpDocument *  yelp_info_document_new          (YelpUri  *uri);
+YelpDocument *  yelp_info_document_new          (YelpUri      *uri,
+                                                 YelpSettings *settings);
 
 #endif /* __YELP_INFO_DOCUMENT_H__ */

@@ -29,8 +29,8 @@
 #include <gio/gio.h>
 #include <gtk/gtk.h>
 
+#include "yelp-gtk-settings.h"
 #include "yelp-search-entry.h"
-#include "yelp-settings.h"
 #include "yelp-uri.h"
 #include "yelp-view.h"
 
@@ -695,7 +695,7 @@ get_resolve_stubs_from_settings (void)
 {
     YelpSettings *settings;
 
-    settings = yelp_settings_get_default ();
+    settings = YELP_SETTINGS (yelp_gtk_settings_get_default ());
     if (yelp_settings_get_editor_mode (settings))
         return YELP_URI_RESOLVE_STUBS_ALLOW;
 
@@ -898,7 +898,7 @@ struct _YelpMenuEntry {
 static gint
 entry_compare (YelpMenuEntry *a, YelpMenuEntry *b)
 {
-    gint ret = yelp_settings_cmp_icons (a->icon, b->icon);
+    gint ret = yelp_gtk_settings_cmp_icons (a->icon, b->icon);
     if (ret != 0)
         return ret;
 

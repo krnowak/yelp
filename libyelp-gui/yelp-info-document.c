@@ -161,12 +161,14 @@ yelp_info_document_finalize (GObject *object)
 /******************************************************************************/
 
 YelpDocument *
-yelp_info_document_new (YelpUri *uri)
+yelp_info_document_new (YelpUri      *uri,
+                        YelpSettings *settings)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     return (YelpDocument *) g_object_new (YELP_TYPE_INFO_DOCUMENT,
                                           "document-uri", uri,
+                                          "settings", settings,
                                           NULL);
 }
 
@@ -349,7 +351,7 @@ info_document_process (YelpInfoDocument *info)
     GFile *file = NULL;
     gchar *filepath = NULL;
     GError *error;
-    gint  params_i = 0;
+    gsize params_i = 0;
     gchar **params = NULL;
 
     file = yelp_uri_get_file (yelp_document_get_uri ((YelpDocument *) info));
@@ -407,7 +409,7 @@ info_document_process (YelpInfoDocument *info)
                           (GCallback) transform_error,
                           info);
 
-    params = yelp_settings_get_all_params (yelp_settings_get_default (), 0, &params_i);
+    params = yelp_settings_get_all_params (yelp_document_get_settings (YELP_DOCUMENT (info)), 0, &params_i);
 
     priv->transform_running = TRUE;
     yelp_transform_start (priv->transform,

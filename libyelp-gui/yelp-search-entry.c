@@ -28,7 +28,7 @@
 
 #include "yelp-search-entry.h"
 #include "yelp-marshal.h"
-#include "yelp-settings.h"
+#include "yelp-gtk-settings.h"
 
 static void     search_entry_constructed     (GObject           *object);
 static void     search_entry_dispose         (GObject           *object);
@@ -517,7 +517,7 @@ entry_completion_sort (GtkTreeModel *model,
 
     gtk_tree_model_get (model, iter1, COMPLETION_COL_ICON, &key1, -1);
     gtk_tree_model_get (model, iter2, COMPLETION_COL_ICON, &key2, -1);
-    ret = yelp_settings_cmp_icons (key1, key2);
+    ret = yelp_gtk_settings_cmp_icons (key1, key2);
     g_free (key1);
     g_free (key2);
 

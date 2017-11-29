@@ -168,9 +168,13 @@ yelp_help_list_finalize (GObject *object)
 }
 
 YelpDocument *
-yelp_help_list_new (YelpUri *uri)
+yelp_help_list_new (YelpUri *uri,
+                    YelpSettings *settings)
 {
-    return g_object_new (YELP_TYPE_HELP_LIST, NULL);
+    // TODO: why don't we set the uri property here?
+    return g_object_new (YELP_TYPE_HELP_LIST,
+                         "settings", settings,
+                         NULL);
 }
 
 /******************************************************************************/
@@ -451,7 +455,9 @@ help_list_handle_page (YelpHelpList *list,
         ("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style type='text/css'>\n"
          "html { height: 100%; }\n"
          "body { margin: 0; padding: 0; max-width: 100%;");
-    colors = yelp_settings_get_colors (yelp_settings_get_default ());
+    YelpSettings *settings = yelp_document_get_settings (YELP_DOCUMENT (list));
+
+    colors = yelp_settings_get_colors (settings);
 
     tmp = g_markup_printf_escaped (" background-color: %s; color: %s;"
                                    " direction: %s; }\n",

@@ -41,7 +41,8 @@
 enum {
     PROP_0,
     PROP_URI,
-    PROP_INDEXED
+    PROP_INDEXED,
+    PROP_SETTINGS,
 };
 
 typedef struct _Request Request;
@@ -94,6 +95,8 @@ struct _YelpDocumentPriv {
     Hash   *up_ids;        /* Mapping of page IDs to "up page" IDs */
 
     GError *idle_error;
+
+    YelpSettings *settings;
 };
 
 G_DEFINE_TYPE (YelpDocument, yelp_document, G_TYPE_OBJECT)
@@ -168,7 +171,8 @@ yelp_document_lookup_document_uri (const gchar *docuri)
 }
 
 YelpDocument *
-yelp_document_get_for_uri (YelpUri *uri)
+yelp_document_get_for_uri (YelpUri *uri,
+                           YelpSettings *settings)
 {
     YelpUriDocumentType doctype;
     gchar *docuri = NULL;
@@ -221,22 +225,22 @@ yelp_document_get_for_uri (YelpUri *uri)
     case YELP_URI_DOCUMENT_TYPE_TEXT:
     case YELP_URI_DOCUMENT_TYPE_HTML:
     case YELP_URI_DOCUMENT_TYPE_XHTML:
-        document = yelp_simple_document_new (uri);
+        document = yelp_simple_document_new (uri, settings);
         break;
     case YELP_URI_DOCUMENT_TYPE_DOCBOOK:
-        document = yelp_docbook_document_new (uri);
+        document = yelp_docbook_document_new (uri, settings);
         break;
     case YELP_URI_DOCUMENT_TYPE_MALLARD:
-        document = yelp_mallard_document_new (uri);
+        document = yelp_mallard_document_new (uri, settings);
         break;
     case YELP_URI_DOCUMENT_TYPE_MAN:
-        document = yelp_man_document_new (uri);
+        document = yelp_man_document_new (uri, settings);
         break;
     case YELP_URI_DOCUMENT_TYPE_INFO:
-        document = yelp_info_document_new (uri);
+        document = yelp_info_document_new (uri, settings);
         break;
     case YELP_URI_DOCUMENT_TYPE_HELP_LIST:
-        document = yelp_help_list_new (uri);
+        document = yelp_help_list_new (uri, settings);
         break;
     case YELP_URI_DOCUMENT_TYPE_NOT_FOUND:
     case YELP_URI_DOCUMENT_TYPE_EXTERNAL:
@@ -289,6 +293,15 @@ yelp_document_class_init (YelpDocumentClass *klass)
                                                           "Document URI",
                                                           "The URI which identifies the document",
                                                           YELP_TYPE_URI,
+                                                          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE |
+                                                          G_PARAM_STATIC_STRINGS));
+
+    g_object_class_install_property (object_class,
+                                     PROP_SETTINGS,
+                                     g_param_spec_object ("settings",
+                                                          "Settings",
+                                                          "Settings containing content parameters",
+                                                          YELP_TYPE_SETTINGS,
                                                           G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE |
                                                           G_PARAM_STATIC_STRINGS));
 
@@ -353,6 +366,7 @@ yelp_document_finalize (GObject *object)
     YelpDocument *document = YELP_DOCUMENT (object);
 
     g_clear_object (&document->priv->uri);
+    g_clear_object (&document->priv->settings);
     g_free (document->priv->doc_uri);
 
     g_slist_free (document->priv->reqs_pending);
@@ -393,6 +407,9 @@ document_get_property (GObject      *object,
     case PROP_URI:
         g_value_set_object (value, document->priv->uri);
         break;
+    case PROP_SETTINGS:
+        g_value_set_object (value, document->priv->settings);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -418,6 +435,9 @@ document_set_property (GObject      *object,
         if (document->priv->uri)
             document->priv->doc_uri = yelp_uri_get_document_uri (document->priv->uri);
         break;
+    case PROP_SETTINGS:
+        document->priv->settings = g_value_dup_object (value);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -432,6 +452,14 @@ yelp_document_get_uri (YelpDocument *document)
     g_assert (document != NULL && YELP_IS_DOCUMENT (document));
 
     return document->priv->uri;
+}
+
+YelpSettings *
+yelp_document_get_settings (YelpDocument *document)
+{
+    g_return_val_if_fail (YELP_IS_DOCUMENT (document), NULL);
+
+    return document->priv->settings;
 }
 
 gchar **
@@ -963,7 +991,7 @@ document_read_contents (YelpDocument *document,
         gchar *index_title;
         GString *ret = g_string_new ("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style type='text/css'>");
 
-        colors = yelp_settings_get_colors (yelp_settings_get_default ());
+        colors = yelp_settings_get_colors (document->priv->settings);
         g_string_append_printf (ret,
                                 "html { height: 100%%; } "
                                 "body { margin: 0; padding: 0;"

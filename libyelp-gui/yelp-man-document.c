@@ -186,12 +186,14 @@ yelp_man_document_finalize (GObject *object)
 /******************************************************************************/
 
 YelpDocument *
-yelp_man_document_new (YelpUri *uri)
+yelp_man_document_new (YelpUri      *uri,
+                       YelpSettings *settings)
 {
     g_return_val_if_fail (uri != NULL, NULL);
 
     return  (YelpDocument *) g_object_new (YELP_TYPE_MAN_DOCUMENT,
                                            "document-uri", uri,
+                                           "settings", settings,
                                            NULL);
 }
 
@@ -382,7 +384,7 @@ man_document_process (YelpManDocument *man)
     GFile *file = NULL;
     gchar *filepath = NULL;
     GError *error;
-    gint  params_i = 0;
+    gsize params_i = 0;
     gchar **params = NULL;
     YelpManParser *parser;
     const gchar *language, *encoding;
@@ -453,7 +455,7 @@ man_document_process (YelpManDocument *man)
                           (GCallback) transform_error,
                           man);
 
-    params = yelp_settings_get_all_params (yelp_settings_get_default (), 0, &params_i);
+    params = yelp_settings_get_all_params (yelp_document_get_settings (YELP_DOCUMENT (man)), 0, &params_i);
 
     priv->transform_running = TRUE;
     yelp_transform_start (priv->transform,

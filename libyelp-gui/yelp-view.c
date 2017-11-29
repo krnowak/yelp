@@ -36,6 +36,7 @@
 #include "yelp-debug.h"
 #include "yelp-docbook-document.h"
 #include "yelp-error.h"
+#include "yelp-gtk-settings.h"
 #include "yelp-marshal.h"
 #include "yelp-settings.h"
 #include "yelp-gui-types.h"
@@ -103,9 +104,9 @@ static void        view_load_page                    (YelpView           *view);
 static void        view_show_error_page              (YelpView           *view,
                                                       GError             *error);
 
-static void        settings_set_fonts                (YelpSettings       *settings,
+static void        settings_set_fonts                (YelpGtkSettings    *settings,
                                                       gpointer            user_data);
-static void        settings_show_text_cursor         (YelpSettings       *settings);
+static void        settings_show_text_cursor         (YelpGtkSettings    *settings);
 
 static void        uri_resolved                      (YelpUri            *uri,
                                                       YelpView           *view);
@@ -357,7 +358,7 @@ yelp_view_constructed (GObject *object)
 {
     YelpView *view = YELP_VIEW (object);
     YelpViewPrivate *priv = GET_PRIV (view);
-    YelpSettings *settings = yelp_settings_get_default ();
+    YelpGtkSettings *settings = yelp_gtk_settings_get_default ();
 
     G_OBJECT_CLASS (yelp_view_parent_class)->constructed (object);
 
@@ -381,7 +382,7 @@ yelp_view_dispose (GObject *object)
     view_clear_load (YELP_VIEW (object));
 
     if (priv->fonts_changed > 0) {
-        g_signal_handler_disconnect (yelp_settings_get_default (),
+        g_signal_handler_disconnect (yelp_gtk_settings_get_default (),
                                      priv->fonts_changed);
         priv->fonts_changed = 0;
     }
@@ -450,7 +451,7 @@ static void
 yelp_view_class_init (YelpViewClass *klass)
 {
     GObjectClass *object_class = G_OBJECT_CLASS (klass);
-    YelpSettings *settings = yelp_settings_get_default ();
+    YelpGtkSettings *settings = yelp_gtk_settings_get_default ();
 
     nautilus_sendto = g_find_program_in_path ("nautilus-sendto");
 
@@ -643,7 +644,7 @@ get_resolve_stubs_from_settings (void)
 {
     YelpSettings *settings;
 
-    settings = yelp_settings_get_default ();
+    settings = YELP_SETTINGS (yelp_gtk_settings_get_default ());
     if (yelp_settings_get_editor_mode (settings))
         return YELP_URI_RESOLVE_STUBS_ALLOW;
 
@@ -788,8 +789,10 @@ help_cb_uri_resolved (YelpUri                *uri,
                       WebKitURISchemeRequest *request)
 {
     YelpDocument *document;
+    YelpGtkSettings *settings;
 
-    if ((document = yelp_document_get_for_uri (uri))) {
+    settings = yelp_gtk_settings_get_default ();
+    if ((document = yelp_document_get_for_uri (uri, YELP_SETTINGS (settings)))) {
         RequestAsyncData *data;
         gchar * page_id;
 
@@ -1958,13 +1961,14 @@ view_show_error_page (YelpView *view,
                       GError   *error)
 {
     YelpViewPrivate *priv = GET_PRIV (view);
-    YelpSettings *settings = yelp_settings_get_default ();
+    YelpGtkSettings *settings = yelp_gtk_settings_get_default ();
     gchar *page, *title = NULL, *title_m, *content_beg, *content_end;
-    gchar *textcolor, *bgcolor, *noteborder, *notebg, *titlecolor, *noteicon, *linkcolor;
+    const gchar *textcolor, *bgcolor, *noteborder, *notebg, *titlecolor, *noteicon, *linkcolor;
     gint iconsize;
     GParamSpec *spec;
     gboolean doc404 = FALSE;
     const gchar *left = (gtk_widget_get_direction ((GtkWidget *) view) == GTK_TEXT_DIR_RTL) ? "right" : "left";
+    gchar **colors;
 
     if (priv->uri && yelp_uri_get_document_type (priv->uri) == YELP_URI_DOCUMENT_TYPE_NOT_FOUND)
         doc404 = TRUE;
@@ -2007,20 +2011,23 @@ view_show_error_page (YelpView *view,
         g_free (struri);
     }
 
-    textcolor = yelp_settings_get_color (settings, YELP_SETTINGS_COLOR_TEXT);
-    bgcolor = yelp_settings_get_color (settings, YELP_SETTINGS_COLOR_BASE);
-    noteborder = yelp_settings_get_color (settings, YELP_SETTINGS_COLOR_RED_BORDER);
-    notebg = yelp_settings_get_color (settings, YELP_SETTINGS_COLOR_YELLOW_BASE);
-    titlecolor = yelp_settings_get_color (settings, YELP_SETTINGS_COLOR_TEXT_LIGHT);
-    linkcolor = yelp_settings_get_color (settings, YELP_SETTINGS_COLOR_LINK);
-    noteicon = yelp_settings_get_icon (settings, YELP_SETTINGS_ICON_WARNING);
-    iconsize = yelp_settings_get_icon_size (settings) + 6;
+    colors = yelp_settings_get_colors (YELP_SETTINGS (settings));
+
+    textcolor = colors[YELP_SETTINGS_COLOR_TEXT];
+    bgcolor = colors[YELP_SETTINGS_COLOR_BASE];
+    noteborder = colors[YELP_SETTINGS_COLOR_RED_BORDER];
+    notebg = colors[YELP_SETTINGS_COLOR_YELLOW_BASE];
+    titlecolor = colors[YELP_SETTINGS_COLOR_TEXT_LIGHT];
+    linkcolor = colors[YELP_SETTINGS_COLOR_LINK];
+    noteicon = yelp_gtk_settings_get_icon (settings, YELP_SETTINGS_ICON_WARNING);
+    iconsize = yelp_gtk_settings_get_icon_size (settings) + 6;
 
     page = g_strdup_printf (FORMAT_ERRORPAGE,
                             textcolor, bgcolor, noteborder, notebg, noteicon,
                             left, iconsize, left, iconsize, left, iconsize,
                             titlecolor, linkcolor, title_m, content_beg,
                             (content_end != NULL) ? content_end : "");
+    g_strfreev (colors);
 
     g_object_set (view, "state", YELP_VIEW_STATE_ERROR, NULL);
 
@@ -2070,8 +2077,8 @@ view_show_error_page (YelpView *view,
 }
 
 static void
-settings_set_fonts (YelpSettings *settings,
-                    gpointer      user_data)
+settings_set_fonts (YelpGtkSettings *settings,
+                    gpointer         user_data)
 {
     YelpView *view;
     gchar *family;
@@ -2079,10 +2086,10 @@ settings_set_fonts (YelpSettings *settings,
 
     view = (YelpView *) user_data;
 
-    family = yelp_settings_get_font_family (settings,
-                                            YELP_SETTINGS_FONT_VARIABLE);
-    size = yelp_settings_get_font_size (settings,
-                                        YELP_SETTINGS_FONT_VARIABLE);
+    family = yelp_gtk_settings_get_font_family (settings,
+                                                YELP_GTK_SETTINGS_FONT_VARIABLE);
+    size = yelp_gtk_settings_get_font_size (settings,
+                                            YELP_GTK_SETTINGS_FONT_VARIABLE);
     g_object_set (webkit_web_view_get_settings (WEBKIT_WEB_VIEW (view)),
                   "default-font-family", family,
                   "sans-serif-font-family", family,
@@ -2090,10 +2097,10 @@ settings_set_fonts (YelpSettings *settings,
                   NULL);
     g_free (family);
 
-    family = yelp_settings_get_font_family (settings,
-                                            YELP_SETTINGS_FONT_FIXED);
-    size = yelp_settings_get_font_size (settings,
-                                        YELP_SETTINGS_FONT_FIXED);
+    family = yelp_gtk_settings_get_font_family (settings,
+                                                YELP_GTK_SETTINGS_FONT_FIXED);
+    size = yelp_gtk_settings_get_font_size (settings,
+                                            YELP_GTK_SETTINGS_FONT_FIXED);
     g_object_set (webkit_web_view_get_settings (WEBKIT_WEB_VIEW (view)),
                   "monospace-font-family", family,
                   "default-monospace-font-size", webkit_settings_font_size_to_pixels (size),
@@ -2102,10 +2109,10 @@ settings_set_fonts (YelpSettings *settings,
 }
 
 static void
-settings_show_text_cursor (YelpSettings *settings)
+settings_show_text_cursor (YelpGtkSettings *settings)
 {
     webkit_settings_set_enable_caret_browsing (yelp_view_get_global_settings (),
-                                               yelp_settings_get_show_text_cursor (settings));
+                                               yelp_gtk_settings_get_show_text_cursor (settings));
 }
 
 /******************************************************************************/
@@ -2203,7 +2210,8 @@ uri_resolved (YelpUri  *uri,
     g_signal_emit_by_name (view, "notify::page-icon", spec);
 
     if (error == NULL) {
-        document = yelp_document_get_for_uri (uri);
+        document = yelp_document_get_for_uri (uri,
+                                              YELP_SETTINGS (yelp_gtk_settings_get_default ()));
         if (priv->document)
             g_object_unref (priv->document);
         priv->document = document;

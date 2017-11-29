@@ -34,7 +34,7 @@
 #include <stdlib.h>
 
 #include "yelp-bookmarks.h"
-#include "yelp-settings.h"
+#include "yelp-gtk-settings.h"
 #include "yelp-view.h"
 
 #include "yelp-application.h"
@@ -266,16 +266,16 @@ yelp_application_startup (GApplication *application)
     YelpApplicationPrivate *priv = GET_PRIV (app);
     GMenu *menu, *section;
     gchar *keyfile;
-    YelpSettings *settings;
+    YelpGtkSettings *settings;
 
     g_set_application_name (N_("Help"));
 
     /* chain up */
     G_APPLICATION_CLASS (yelp_application_parent_class)->startup (application);
 
-    settings = yelp_settings_get_default ();
+    settings = yelp_gtk_settings_get_default ();
     if (editor_mode)
-        yelp_settings_set_editor_mode (settings, TRUE);
+        yelp_gtk_settings_set_editor_mode (settings, TRUE);
     priv->windows_by_document = g_hash_table_new_full (g_str_hash,
                                                        g_str_equal,
                                                        g_free,
@@ -350,8 +350,8 @@ static void
 application_set_font_sensitivity (YelpApplication *app)
 {
     YelpApplicationPrivate *priv = GET_PRIV (app);
-    YelpSettings *settings = yelp_settings_get_default ();
-    GParamSpec *spec = g_object_class_find_property ((GObjectClass *) YELP_SETTINGS_GET_CLASS (settings),
+    YelpGtkSettings *settings = yelp_gtk_settings_get_default ();
+    GParamSpec *spec = g_object_class_find_property ((GObjectClass *) YELP_GTK_SETTINGS_GET_CLASS (settings),
                                                      "font-adjustment");
     gint adjustment = g_settings_get_int (priv->gsettings, "font-adjustment");
     if (!G_PARAM_SPEC_INT (spec)) {
@@ -411,7 +411,7 @@ get_resolve_stubs_from_settings (void)
 {
     YelpSettings *settings;
 
-    settings = yelp_settings_get_default ();
+    settings = YELP_SETTINGS (yelp_gtk_settings_get_default ());
     if (yelp_settings_get_editor_mode (settings))
         return YELP_URI_RESOLVE_STUBS_ALLOW;
 

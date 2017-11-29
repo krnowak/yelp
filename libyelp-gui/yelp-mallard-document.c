@@ -215,7 +215,8 @@ yelp_mallard_document_finalize (GObject *object)
 /******************************************************************************/
 
 YelpDocument *
-yelp_mallard_document_new (YelpUri *uri)
+yelp_mallard_document_new (YelpUri      *uri,
+                           YelpSettings *settings)
 {
     YelpMallardDocument *mallard;
     YelpMallardDocumentPrivate *priv;
@@ -226,6 +227,7 @@ yelp_mallard_document_new (YelpUri *uri)
 
     mallard = (YelpMallardDocument *) g_object_new (YELP_TYPE_MALLARD_DOCUMENT,
                                                     "document-uri", uri,
+                                                    "settings", settings,
                                                     NULL);
     priv = GET_PRIV (mallard);
 
@@ -335,7 +337,7 @@ mallard_think (YelpMallardDocument *mallard)
     GFileEnumerator *children = NULL;
     GFileInfo *pageinfo;
 
-    editor_mode = yelp_settings_get_editor_mode (yelp_settings_get_default ());
+    editor_mode = yelp_settings_get_editor_mode (yelp_document_get_settings (YELP_DOCUMENT (mallard)));
 
     path = yelp_uri_get_search_path (yelp_document_get_uri ((YelpDocument *) mallard));
     if (!path || path[0] == NULL ||
@@ -702,8 +704,8 @@ mallard_page_data_info (MallardPageData *page_data,
 static void
 mallard_page_data_run (MallardPageData *page_data)
 {
-    YelpSettings *settings = yelp_settings_get_default ();
     YelpMallardDocumentPrivate *priv = GET_PRIV (page_data->mallard);
+    YelpSettings *settings = yelp_document_get_settings (YELP_DOCUMENT (page_data->mallard));
     gchar **params = NULL;
 
     mallard_page_data_cancel (page_data);
@@ -723,7 +725,7 @@ mallard_page_data_run (MallardPageData *page_data)
                           page_data);
 
     if (g_str_has_suffix (page_data->filename, ".page.stub")) {
-        gint end;
+        gsize end;
         params = yelp_settings_get_all_params (settings, 2, &end);
         params[end++] = g_strdup ("yelp.stub");
         params[end++] = g_strdup ("true()");

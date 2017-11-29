@@ -24,6 +24,7 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
+#include "yelp-settings.h"
 #include "yelp-uri.h"
 
 G_BEGIN_DECLS
@@ -77,10 +78,12 @@ struct _YelpDocumentClass {
 
 GType             yelp_document_get_type            (void);
 
-YelpDocument *    yelp_document_get_for_uri         (YelpUri              *uri);
+YelpDocument *    yelp_document_get_for_uri         (YelpUri              *uri,
+                                                     YelpSettings         *settings);
 YelpDocument *    yelp_document_lookup_document_uri (const gchar          *docuri);
 
 YelpUri *         yelp_document_get_uri             (YelpDocument         *document);
+YelpSettings *    yelp_document_get_settings        (YelpDocument         *document);
 
 gboolean          yelp_document_request_page        (YelpDocument         *document,
                                                      const gchar          *page_id,

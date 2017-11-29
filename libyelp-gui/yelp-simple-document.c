@@ -162,12 +162,14 @@ yelp_simple_document_finalize (GObject *object)
 }
 
 YelpDocument *
-yelp_simple_document_new (YelpUri *uri)
+yelp_simple_document_new (YelpUri      *uri,
+                          YelpSettings *settings)
 {
     YelpSimpleDocument *document;
 
     document = (YelpSimpleDocument *) g_object_new (YELP_TYPE_SIMPLE_DOCUMENT,
                                                     "document-uri", uri,
+                                                    "settings", settings,
                                                     NULL);
     document->priv->file = yelp_uri_get_file (uri);
     document->priv->page_id = yelp_uri_get_page_id (uri);
