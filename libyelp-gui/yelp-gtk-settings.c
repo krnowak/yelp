@@ -1290,6 +1290,14 @@ get_tokens (YelpSettings *settings)
     return tokens;
 }
 
+static YelpSettingsTextDirection
+get_text_direction (YelpSettings *settings)
+{
+    return (gtk_widget_get_default_direction() == GTK_TEXT_DIR_RTL) ?
+        YELP_SETTINGS_TEXT_DIRECTION_RTL :
+        YELP_SETTINGS_TEXT_DIRECTION_LTR;
+}
+
 static void
 yelp_gtk_settings_yelp_settings_init (YelpSettingsInterface *iface)
 {
@@ -1298,4 +1306,5 @@ yelp_gtk_settings_yelp_settings_init (YelpSettingsInterface *iface)
   iface->get_icons = get_icons;
   iface->get_editor_mode = get_editor_mode;
   iface->get_tokens = get_tokens;
+  iface->get_text_direction = get_text_direction;
 }

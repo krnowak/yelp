@@ -24,7 +24,6 @@
 
 #include <glib.h>
 #include <glib/gi18n.h>
-#include <gtk/gtk.h>
 
 #include "yelp-debug.h"
 #include "yelp-document.h"
@@ -973,6 +972,13 @@ yelp_document_read_contents (YelpDocument *document,
     return YELP_DOCUMENT_GET_CLASS (document)->read_contents (document, page_id);
 }
 
+static gboolean
+is_rtl (YelpDocument *document)
+{
+    return yelp_settings_get_text_direction (document->priv->settings) ==
+        YELP_SETTINGS_TEXT_DIRECTION_RTL;
+}
+
 static const gchar *
 document_read_contents (YelpDocument *document,
 			const gchar  *page_id)
@@ -1019,7 +1025,7 @@ document_read_contents (YelpDocument *document,
                                 "</style></head><body><div class='header'>",
                                 colors[YELP_SETTINGS_COLOR_BASE],
                                 colors[YELP_SETTINGS_COLOR_TEXT],
-                                (gtk_widget_get_default_direction() == GTK_TEXT_DIR_RTL ? "rtl" : "ltr"),
+                                (is_rtl (document) ? "rtl" : "ltr"),
                                 colors[YELP_SETTINGS_COLOR_GRAY_BASE],
                                 colors[YELP_SETTINGS_COLOR_GRAY_BORDER],
                                 colors[YELP_SETTINGS_COLOR_TEXT_LIGHT],
@@ -1038,7 +1044,7 @@ document_read_contents (YelpDocument *document,
                                            "<a href='xref:'>%s</a>&#x00A0;%s "
                                            "</div></div>",
                                            index_title,
-                                           (gtk_widget_get_default_direction() == GTK_TEXT_DIR_RTL ? "«" : "»")
+                                           (is_rtl (document) ? "«" : "»")
                                            );
             g_string_append (ret, tmp);
             g_free (tmp);

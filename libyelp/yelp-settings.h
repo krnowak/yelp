@@ -55,25 +55,32 @@ typedef enum {
     YELP_SETTINGS_NUM_ICONS_START = 0,
 } YelpSettingsIcon;
 
+typedef enum {
+  YELP_SETTINGS_TEXT_DIRECTION_RTL,
+  YELP_SETTINGS_TEXT_DIRECTION_LTR,
+} YelpSettingsTextDirection;
+
 #define YELP_TYPE_SETTINGS         (yelp_settings_get_type ())
 
 G_DECLARE_INTERFACE (YelpSettings, yelp_settings, YELP, SETTINGS, GObject)
 
 struct _YelpSettingsInterface {
-  GTypeInterface g_iface;
+    GTypeInterface g_iface;
 
-  gchar ** (*get_colors)      (YelpSettings     *settings);
-  gint     (*get_icon_size)   (YelpSettings     *settings);
-  gchar ** (*get_icons)       (YelpSettings     *settings);
-  gboolean (*get_editor_mode) (YelpSettings     *settings);
-  gchar ** (*get_tokens)      (YelpSettings     *settings);
+    gchar **                  (*get_colors)         (YelpSettings *settings);
+    gint                      (*get_icon_size)      (YelpSettings *settings);
+    gchar **                  (*get_icons)          (YelpSettings *settings);
+    gboolean                  (*get_editor_mode)    (YelpSettings *settings);
+    gchar **                  (*get_tokens)         (YelpSettings *settings);
+    YelpSettingsTextDirection (*get_text_direction) (YelpSettings *settings);
 };
 
-gchar ** yelp_settings_get_colors      (YelpSettings *settings);
-gboolean yelp_settings_get_editor_mode (YelpSettings *settings);
-gchar ** yelp_settings_get_all_params  (YelpSettings *settings,
-                                        gsize         extra,
-                                        gsize        *end);
+gchar **                  yelp_settings_get_colors         (YelpSettings *settings);
+gboolean                  yelp_settings_get_editor_mode    (YelpSettings *settings);
+gchar **                  yelp_settings_get_all_params     (YelpSettings *settings,
+                                                            gsize         extra,
+                                                            gsize        *end);
+YelpSettingsTextDirection yelp_settings_get_text_direction (YelpSettings *settings);
 
 G_END_DECLS
 

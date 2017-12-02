@@ -442,6 +442,13 @@ help_list_think (YelpHelpList *list)
     g_object_unref (list);
 }
 
+static gboolean
+is_rtl (YelpSettings *settings)
+{
+    return yelp_settings_get_text_direction (settings) ==
+        YELP_SETTINGS_TEXT_DIRECTION_RTL;
+}
+
 /* This function expects to be called inside a locked mutex */
 static void
 help_list_handle_page (YelpHelpList *list,
@@ -450,7 +457,6 @@ help_list_handle_page (YelpHelpList *list,
     gchar **colors, *tmp;
     GList *cur;
     YelpHelpListPrivate *priv = GET_PRIV (list);
-    GtkTextDirection direction = gtk_widget_get_default_direction ();
     GString *string = g_string_new
         ("<html xmlns=\"http://www.w3.org/1999/xhtml\"><head><style type='text/css'>\n"
          "html { height: 100%; }\n"
@@ -463,7 +469,7 @@ help_list_handle_page (YelpHelpList *list,
                                    " direction: %s; }\n",
                                    colors[YELP_SETTINGS_COLOR_BASE],
                                    colors[YELP_SETTINGS_COLOR_TEXT],
-                                   (direction == GTK_TEXT_DIR_RTL) ? "rtl" : "ltr");
+                                   (is_rtl (settings) ? "rtl" : "ltr"));
     g_string_append (string, tmp);
     g_free (tmp);
 
@@ -516,8 +522,8 @@ help_list_handle_page (YelpHelpList *list,
                                    " background: -webkit-gradient(linear, left top, left 80,"
                                    " from(%s), to(%s)); }\n",
                                    colors[YELP_SETTINGS_COLOR_TEXT_LIGHT],
-                                   ((direction == GTK_TEXT_DIR_RTL) ? "right" : "left"),
-                                   ((direction == GTK_TEXT_DIR_RTL) ? "right" : "left"),
+                                   (is_rtl (settings) ? "right" : "left"),
+                                   (is_rtl (settings) ? "right" : "left"),
                                    colors[YELP_SETTINGS_COLOR_TEXT_LIGHT],
                                    colors[YELP_SETTINGS_COLOR_BLUE_BASE],
                                    colors[YELP_SETTINGS_COLOR_BLUE_BASE],

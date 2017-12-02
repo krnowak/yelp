@@ -271,3 +271,15 @@ yelp_settings_get_all_params (YelpSettings *settings,
         *end = ix;
     return params;
 }
+
+YelpSettingsTextDirection
+yelp_settings_get_text_direction (YelpSettings *settings)
+{
+    YelpSettingsInterface *iface;
+
+    g_return_val_if_fail (YELP_IS_SETTINGS (settings), YELP_SETTINGS_TEXT_DIRECTION_LTR);
+
+    iface = YELP_SETTINGS_GET_IFACE (settings);
+    g_return_val_if_fail (iface->get_text_direction != NULL, FALSE);
+    return iface->get_text_direction (settings);
+}
