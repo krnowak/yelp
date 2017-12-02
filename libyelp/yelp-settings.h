@@ -73,6 +73,8 @@ struct _YelpSettingsInterface {
     gboolean                  (*get_editor_mode)    (YelpSettings *settings);
     gchar **                  (*get_tokens)         (YelpSettings *settings);
     YelpSettingsTextDirection (*get_text_direction) (YelpSettings *settings);
+    gchar *                   (*get_uri_for_gicon)  (YelpSettings *settings,
+                                                     GIcon        *icon);
 };
 
 gchar **                  yelp_settings_get_colors         (YelpSettings *settings);
@@ -81,6 +83,8 @@ gchar **                  yelp_settings_get_all_params     (YelpSettings *settin
                                                             gsize         extra,
                                                             gsize        *end);
 YelpSettingsTextDirection yelp_settings_get_text_direction (YelpSettings *settings);
+gchar *                   yelp_settings_get_uri_for_gicon  (YelpSettings *settings,
+                                                            GIcon        *icon);
 
 G_END_DECLS
 

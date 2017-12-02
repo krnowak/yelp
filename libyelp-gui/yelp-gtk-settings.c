@@ -1298,6 +1298,33 @@ get_text_direction (YelpSettings *settings)
         YELP_SETTINGS_TEXT_DIRECTION_LTR;
 }
 
+static gchar *
+get_uri_for_gicon (YelpSettings *settings,
+                   GIcon        *icon)
+{
+    YelpGtkSettingsPrivate *priv;
+    GtkIconInfo *info;
+    const gchar *icon_file;
+    gchar *icon_uri;
+
+    g_assert (YELP_IS_GTK_SETTINGS (settings));
+    g_assert (G_IS_ICON (icon));
+
+    priv = GET_PRIV (YELP_GTK_SETTINGS (settings));
+    info = gtk_icon_theme_lookup_by_gicon (theme, icon, GTK_ICON_LOOKUP_NO_SVG);
+
+    if (info == NULL)
+        return NULL;
+    icon_file = gtk_icon_info_get_filename (info);
+    if (icon_file != NULL)
+        icon_uri = g_filename_to_uri (icon_file, NULL, NULL);
+    else
+        icon_uri = NULL;
+
+    g_object_unref (info);
+    return icon_uri;
+}
+
 static void
 yelp_gtk_settings_yelp_settings_init (YelpSettingsInterface *iface)
 {
@@ -1307,4 +1334,5 @@ yelp_gtk_settings_yelp_settings_init (YelpSettingsInterface *iface)
   iface->get_editor_mode = get_editor_mode;
   iface->get_tokens = get_tokens;
   iface->get_text_direction = get_text_direction;
+  iface->get_uri_for_gicon = get_uri_for_gicon;
 }

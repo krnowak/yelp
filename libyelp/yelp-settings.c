@@ -283,3 +283,17 @@ yelp_settings_get_text_direction (YelpSettings *settings)
     g_return_val_if_fail (iface->get_text_direction != NULL, FALSE);
     return iface->get_text_direction (settings);
 }
+
+gchar *
+yelp_settings_get_uri_for_gicon (YelpSettings *settings,
+                                 GIcon        *icon)
+{
+    YelpSettingsInterface *iface;
+
+    g_return_val_if_fail (YELP_IS_SETTINGS (settings), NULL);
+    g_return_val_if_fail (G_IS_ICON (icon), NULL);
+
+    iface = YELP_SETTINGS_GET_IFACE (settings);
+    g_return_val_if_fail (iface->get_uri_for_gicon != NULL, FALSE);
+    return iface->get_uri_for_gicon (settings, icon);
+}

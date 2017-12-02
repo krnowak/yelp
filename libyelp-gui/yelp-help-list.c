@@ -25,7 +25,6 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 #include <glib/gi18n.h>
-#include <gtk/gtk.h>
 #include <libxml/parser.h>
 #include <libxml/xinclude.h>
 #include <libxml/xpath.h>
@@ -232,7 +231,6 @@ help_list_think (YelpHelpList *list)
     gchar **datadirs;
     gint datadir_i, lang_i;
     GList *cur;
-    GtkIconTheme *theme;
 
     datadirs = g_new0 (gchar *, g_strv_length ((gchar **) sdatadirs) + 2);
     datadirs[0] = (gchar *) g_get_user_data_dir ();
@@ -384,7 +382,6 @@ help_list_think (YelpHelpList *list)
     }
     g_free (datadirs);
 
-    theme = gtk_icon_theme_get_default ();
     for (cur = priv->all_entries; cur != NULL; cur = cur->next) {
         GDesktopAppInfo *app;
         gchar *tmp;
@@ -414,15 +411,9 @@ help_list_think (YelpHelpList *list)
         if (app != NULL) {
             GIcon *icon = g_app_info_get_icon ((GAppInfo *) app);
             if (icon != NULL) {
-                GtkIconInfo *info = gtk_icon_theme_lookup_by_gicon (theme,
-                                                                    icon, 22,
-                                                                    GTK_ICON_LOOKUP_NO_SVG);
-                if (info != NULL) {
-                    const gchar *iconfile = gtk_icon_info_get_filename (info);
-                    if (iconfile)
-                        entry->icon = g_filename_to_uri (iconfile, NULL, NULL);
-                    g_object_unref (info);
-                }
+                YelpSettings *settings = yelp_document_get_settings (YELP_DOCUMENT (list));
+
+                entry->icon = yelp_settings_get_uri_for_gicon (settings, icon);
             }
             g_object_unref (app);
         }
