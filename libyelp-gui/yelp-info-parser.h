@@ -22,20 +22,17 @@
 #define __YELP_INFO_PARSER_H__
 
 #include <glib.h>
-#include <gtk/gtk.h>
 #include <libxml/tree.h>
 
-enum {
-    INFO_PARSER_COLUMN_PAGE_NO,
-    INFO_PARSER_COLUMN_PAGE_NAME,
-    INFO_PARSER_COLUMN_PAGE_CONTENT,
-    INFO_PARSER_N_COLUMNS
-};
-
+typedef struct {
+    gchar *no;
+    gchar *name;
+    gchar *content;
+} YelpInfoPageData;
 
 G_GNUC_INTERNAL
-GtkTreeStore          *yelp_info_parser_parse_file  (char           *file);
+GNode                 *yelp_info_parser_parse_file  (gchar           *file);
 G_GNUC_INTERNAL
-xmlDocPtr              yelp_info_parser_parse_tree  (GtkTreeStore   *tree);
+xmlDocPtr              yelp_info_parser_parse_tree  (GNode           *tree);
 
 #endif /* __YELP_INFO_PARSER_H__ */
