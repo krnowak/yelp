@@ -13,10 +13,18 @@ lib_LTLIBRARIES = \
 libyelp_libyelp_la_SOURCES = \
 	libyelp/yelp-bookmarks.c \
 	libyelp/yelp-debug.c \
+	libyelp/yelp-docbook-document.c \
+	libyelp/yelp-document.c \
 	libyelp/yelp-error.c \
+	libyelp/yelp-help-list.c \
+	libyelp/yelp-info-document.c \
+	libyelp/yelp-info-parser.c \
 	libyelp/yelp-magic-decompressor.c \
+	libyelp/yelp-mallard-document.c \
+	libyelp/yelp-man-document.c \
 	libyelp/yelp-man-parser.c \
 	libyelp/yelp-settings.c \
+	libyelp/yelp-simple-document.c \
 	libyelp/yelp-sqlite-storage.c \
 	libyelp/yelp-storage.c \
 	libyelp/yelp-transform.c \
@@ -29,9 +37,10 @@ noinst_libyelp_libyelp_la_headers = \
 	libyelp/yelp-bz2-decompressor.h \
 	libyelp/yelp-debug.h \
 	libyelp/yelp-error.h \
-	libyelp/yelp-man-parser.h \
+	libyelp/yelp-info-parser.h
 	libyelp/yelp-lzma-decompressor.h \
-	libyelp/yelp-magic-decompressor.h
+	libyelp/yelp-magic-decompressor.h \
+	libyelp/yelp-man-parser.h
 
 if ENABLE_LZMA
 libyelp_libyelp_la_SOURCES += libyelp/yelp-lzma-decompressor.c
@@ -56,7 +65,14 @@ libyelp_libyelp_la_LIBADD = \
 
 libyelp_libyelp_la_headers = \
 	$(top_srcdir)/libyelp/yelp-bookmarks.h \
+	$(top_srcdir)/libyelp/yelp-docbook-document.h \
+	$(top_srcdir)/libyelp/yelp-document.h \
+	$(top_srcdir)/libyelp/yelp-help-list.h \
+	$(top_srcdir)/libyelp/yelp-info-document.h \
+	$(top_srcdir)/libyelp/yelp-mallard-document.h \
+	$(top_srcdir)/libyelp/yelp-man-document.h \
 	$(top_srcdir)/libyelp/yelp-settings.h \
+	$(top_srcdir)/libyelp/yelp-simple-document.h \
 	$(top_srcdir)/libyelp/yelp-sqlite-storage.h \
 	$(top_srcdir)/libyelp/yelp-storage.h \
 	$(top_srcdir)/libyelp/yelp-transform.h \
@@ -100,25 +116,14 @@ libyelp/yelp-types.c: $(libyelp_libyelp_la_headers) libyelp/yelp-types.h
 	$(libyelp_libyelp_la_headers) > $@
 
 libyelp_gui_libyelp_gui_la_SOURCES = \
-	libyelp-gui/yelp-docbook-document.c \
-	libyelp-gui/yelp-document.c \
 	libyelp-gui/yelp-gtk-settings.c \
-	libyelp-gui/yelp-help-list.c \
-	libyelp-gui/yelp-info-document.c \
-	libyelp-gui/yelp-info-parser.c \
-	libyelp-gui/yelp-mallard-document.c \
-	libyelp-gui/yelp-man-document.c \
 	libyelp-gui/yelp-search-entry.c \
-	libyelp-gui/yelp-simple-document.c \
 	libyelp-gui/yelp-uri-builder.c \
 	libyelp-gui/yelp-view.c
 
 nodist_libyelp_gui_libyelp_gui_la_SOURCES = \
 	libyelp-gui/yelp-marshal.c \
 	libyelp-gui/yelp-gui-types.c
-
-noinst_libyelp_gui_libyelp_gui_la_headers = \
-	libyelp/yelp-info-parser.h
 
 libyelp_gui_libyelp_gui_la_CFLAGS = \
 	$(WARN_CFLAGS) \
@@ -140,15 +145,8 @@ libyelp_gui_libyelp_gui_la_LIBADD = \
 	libyelp/libyelp.la
 
 libyelp_gui_libyelp_gui_la_headers = \
-	$(top_srcdir)/libyelp-gui/yelp-docbook-document.h \
-	$(top_srcdir)/libyelp-gui/yelp-document.h \
 	$(top_srcdir)/libyelp-gui/yelp-gtk-settings.h \
-	$(top_srcdir)/libyelp-gui/yelp-help-list.h \
-	$(top_srcdir)/libyelp-gui/yelp-info-document.h \
-	$(top_srcdir)/libyelp-gui/yelp-mallard-document.h \
-	$(top_srcdir)/libyelp-gui/yelp-man-document.h \
 	$(top_srcdir)/libyelp-gui/yelp-search-entry.h \
-	$(top_srcdir)/libyelp-gui/yelp-simple-document.h \
 	$(top_srcdir)/libyelp-gui/yelp-uri-builder.h \
 	$(top_srcdir)/libyelp-gui/yelp-view.h
 
