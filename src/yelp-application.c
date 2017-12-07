@@ -254,6 +254,7 @@ yelp_application_cmdline (GApplication     *app,
             g_object_unref (base);
         }
     }
+    g_option_context_free (context);
 
     return G_APPLICATION_CLASS (yelp_application_parent_class)
         ->local_command_line (app, arguments, exit_status);
