@@ -23,8 +23,6 @@
 #include <gio/gio.h>
 #include <string.h>
 
-#include <gtk/gtk.h>
-
 #include "yelp-shell-search-provider-generated.h"
 
 #include "yelp-settings.h"
@@ -616,8 +614,6 @@ main (int    argc,
     GApplication *app;
     gint res;
 
-    gtk_init (&argc, &argv);
-    yelp_settings_get_default ();
     app = yelp_search_provider_app_new ();
     res = g_application_run (app, argc, argv);
 
