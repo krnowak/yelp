@@ -41,7 +41,7 @@ static GNode       *  find_real_top                      (ProcessContext *contex
                                                           GNode *gnode);
 static GNode       *  find_real_sibling                  (ProcessContext *context,
                                                           GNode *gnode,
-                                                          GNode *sibling_parent)
+                                                          GNode *sibling_parent);
 static xmlNodePtr     yelp_info_parse_menu               (GNode *tree,
                                                           xmlNodePtr *node,
                                                           const gchar *page_content,
@@ -431,6 +431,9 @@ open_info_file (const gchar *file)
     g_string_append_len (string, buf, bytes);
 
   g_object_unref (stream);
+  g_object_unref (converter);
+  g_object_unref (file_stream);
+  g_object_unref (gfile);
 
   str = string->str;
 
@@ -650,7 +653,7 @@ find_real_top (ProcessContext *context,
                GNode *gnode)
 {
   if (gnode == NULL)
-    return NULL
+    return NULL;
 
   while (gnode->parent != NULL &&
          gnode->parent != context->tree)
@@ -710,6 +713,8 @@ process_page (ProcessContext *context,
   gchar *prev;
   gchar *next;
   gchar *tmp;
+  GNode *iter;
+  YelpInfoPageData *page_data;
 
   /* split out the header line and the text */
   parts = g_strsplit (page_text, "\n", 3);
@@ -729,7 +734,7 @@ process_page (ProcessContext *context,
   {
     /* check to see if this page has been processed already */
     guint node_page = node2page (context, node);
-    if (processed_table[node_page]) {
+    if (context->processed_table[node_page]) {
       return;
     }
     context->processed_table[node_page] = TRUE;
@@ -755,7 +760,7 @@ process_page (ProcessContext *context,
     }
     else {
       guint prev_page = node2page (context, prev);
-      if (!processed_table[prev_page]) {
+      if (!context->processed_table[prev_page]) {
         debug_print (DB_DEBUG, "%% Processing Node %s\n", prev);
         process_page (context,
                       context->page_list[prev_page]);
@@ -785,10 +790,10 @@ process_page (ProcessContext *context,
       }
     }
   }
-  else if (prev != NULL ||
+  else if (prev == NULL ||
            strcaseeq (prev, "(dir)") ||
            streq (prev, up)) {
-    GNode *up_gnode = node2gnode (nodes2gnodes, up);
+    GNode *up_gnode = node2gnode (context, up);
     debug_print (DB_DEBUG, "\t> no previous\n");
 
     if (up_gnode == NULL)
@@ -796,8 +801,8 @@ process_page (ProcessContext *context,
     g_node_append (up_gnode, iter);
   }
   else if (up && prev) {
-    GNode *up_gnode = node2gnode (nodes2gnodes, up);
-    GNode *prev_gnode = node2gnode (nodes2gnodes, prev);
+    GNode *up_gnode = node2gnode (context, up);
+    GNode *prev_gnode = node2gnode (context, prev);
     GNode *sibling_gnode;
 
     debug_print (DB_DEBUG, "+++ Parent: %s Previous: %s\n", up, prev);
@@ -821,8 +826,8 @@ process_page (ProcessContext *context,
 
   d (if (iter) debug_print (DB_DEBUG, "Have a valid iter, storing for %s\n", node));
 
-  g_hash_table_insert (nodes2gnodes, g_strdup (node), iter);
-  debug_print (DB_DEBUG, "size: %i\n", g_hash_table_size (nodes2gnodes));
+  g_hash_table_insert (context->nodes2gnodes, g_strdup (node), iter);
+  debug_print (DB_DEBUG, "size: %i\n", g_hash_table_size (context->nodes2gnodes));
 
   tmp = g_strdup (node);
   tmp = g_strdelimit (tmp, " ", '_');
@@ -830,6 +835,7 @@ process_page (ProcessContext *context,
   page_data->no = tmp;
   page_data->name = g_strdup (node);
   page_data->content = g_steal_pointer (&parts[2]);
+  iter->data = page_data;
 
   g_free (node);
   g_free (up);
@@ -850,9 +856,9 @@ use_offset2page (gpointer offset,
 {
   TagTableFix* ttf = (TagTableFix *) user_data;
 
-  const gchar* node = g_hash_table_lookup (ttf->pages2nodes, p);
+  const gchar* node = g_hash_table_lookup (ttf->pages2nodes, page);
   if (node) {
-    g_hash_table_insert (ttf->nodes2pages, g_strdup (node), p);
+    g_hash_table_insert (ttf->nodes2pages, g_strdup (node), page);
   }
 }
 
@@ -893,9 +899,9 @@ get_nodes2pages (gchar **page_list,
 
   g_assert (page_list != NULL);
 
-  for (pages = offset = 0, ptr = page_list;
-       *ptr != NULL;
-       ptr++) {
+  for (pages = offset = 0, iter = page_list;
+       *iter != NULL;
+       iter++) {
     gchar *name = NULL;
     gint pt;
 
@@ -903,18 +909,18 @@ get_nodes2pages (gchar **page_list,
                          GUINT_TO_POINTER (offset),
                          GUINT_TO_POINTER (pages));
 
-    name = get_value_after (*ptr, "Node: ");
+    name = get_value_after (*iter, "Node: ");
     if (name != NULL)
       g_hash_table_insert (pages2nodes,
                            GUINT_TO_POINTER (pages),
                            g_steal_pointer (&name));
 
-    offset += strlen (*ptr);
+    offset += strlen (*iter);
     if (pages)
       offset += 2;
     pages++;
 
-    pt = page_type (*ptr);
+    pt = page_type (*iter);
     if (pt == PAGE_INDIRECT) {
       g_warning ("Found an indirect page in a file "
                  "we thought we'd expanded.");
@@ -981,7 +987,7 @@ yelp_info_parser_parse_file (char *file)
 {
   gchar **page_list;
   ProcessContext* context;
-  gchar **ptr;
+  gchar **iter;
 
   g_return_val_if_fail (file != NULL, NULL);
 
@@ -991,10 +997,10 @@ yelp_info_parser_parse_file (char *file)
 
   context = process_context_new (g_steal_pointer (&page_list));
 
-  for (ptr = context->page_list; *ptr != NULL; ptr++) {
-    if (page_type (*ptr) != PAGE_NODE)
+  for (iter = context->page_list; *iter != NULL; iter++) {
+    if (page_type (*iter) != PAGE_NODE)
       continue;
-    process_page (context, *ptr);
+    process_page (context, *iter);
   }
 
   return process_context_finish (context);
@@ -1013,7 +1019,7 @@ parse_tree_level (GNode *tree, xmlNodePtr *node, GNode *iter)
        iter != NULL;
        iter = g_node_next_sibling (iter)) {
     YelpInfoPageData *page_data = (YelpInfoPageData *) iter->data;
-    debug_print (DB_DEBUG, "Got Section: %s\n", page_name);
+    debug_print (DB_DEBUG, "Got Section: %s\n", page_data->name);
     if (strstr (page_data->content, "*Note") ||
         strstr (page_data->content, "*note")) {
       notes = TRUE;
@@ -1030,7 +1036,7 @@ parse_tree_level (GNode *tree, xmlNodePtr *node, GNode *iter)
 
       else {
         /* Handle notes here */
-        info_process_text_notes (&newnode, page_content, tree);
+        info_process_text_notes (&newnode, page_data->content, tree);
       }
     }
 
@@ -1067,7 +1073,7 @@ yelp_info_parser_parse_tree (GNode *tree)
 
   first_child = g_node_first_child (tree);
   if (first_child != NULL)
-    parse_tree_level (tree, &node, iter);
+    parse_tree_level (tree, &node, first_child);
   d (else debug_print (DB_DEBUG, "Empty tree?\n"));
 
   return doc;
@@ -1483,7 +1489,7 @@ info_process_text_notes (xmlNodePtr *node,
       else
         frag = g_strndup (url, tmp1 - url);
       g_strstrip (frag);
-      g_node_traverse (tree, G_PRE_ORDER, G_TRAVERSE_ALL, resolve_frag_id, &frag);
+      g_node_traverse (tree, G_PRE_ORDER, G_TRAVERSE_ALL, -1, resolve_frag_id, &frag);
       href = g_strconcat ("xref:", frag, NULL);
       g_free (frag);
     }

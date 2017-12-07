@@ -368,6 +368,7 @@ info_document_process (YelpInfoDocument *info)
     g_node_traverse (priv->sections,
                      G_PRE_ORDER,
                      G_TRAVERSE_ALL,
+                     -1,
                      info_sections_visit,
                      info);
     priv->xmldoc = yelp_info_parser_parse_tree (priv->sections);
