@@ -27,6 +27,7 @@
 
 G_BEGIN_DECLS
 
+#define YELP_TYPE_GTK_SETTINGS (yelp_gtk_settings_get_type ())
 G_DECLARE_DERIVABLE_TYPE (YelpGtkSettings, yelp_gtk_settings, YELP, GTK_SETTINGS, GObject)
 
 struct _YelpGtkSettingsClass {

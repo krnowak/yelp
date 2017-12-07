@@ -22,6 +22,7 @@
 #define __YELP_SETTINGS_H__
 
 #include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 
@@ -45,7 +46,6 @@ typedef enum {
 } YelpSettingsColor;
 
 typedef enum {
-    YELP_SETTINGS_ICON_START,
     YELP_SETTINGS_ICON_BUG,
     YELP_SETTINGS_ICON_IMPORTANT,
     YELP_SETTINGS_ICON_NOTE,

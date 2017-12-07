@@ -157,6 +157,7 @@ fill_colors (YelpSettings  *settings,
     g_assert (params != NULL);
     g_assert (inout_ix != NULL);
 
+    ix = *inout_ix;
     colors = get_colors (settings);
     for (i = 0, ix = *inout_ix;
          i < YELP_SETTINGS_NUM_COLORS;
@@ -180,6 +181,7 @@ fill_icons (YelpSettings  *settings,
     g_assert (params != NULL);
     g_assert (inout_ix != NULL);
 
+    ix = *inout_ix;
     icons = get_icons (settings);
     for (i = 0, ix = *inout_ix;
          i < YELP_SETTINGS_NUM_ICONS;
@@ -262,6 +264,7 @@ yelp_settings_get_all_params (YelpSettings *settings,
                      8 /* editor mode, icon size, db.profile.os and mal.if.custom */ +
                      1 /* NULL */);
 
+    ix = 0;
     fill_colors (settings, params, &ix);
     fill_icons (settings, params, &ix);
     fill_misc (settings, params, &ix);

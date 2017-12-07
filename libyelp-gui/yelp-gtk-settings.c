@@ -128,7 +128,9 @@ yelp_gtk_settings_class_init (YelpGtkSettingsClass *klass)
     object_class->get_property = yelp_gtk_settings_get_property;
     object_class->set_property = yelp_gtk_settings_set_property;
 
-    for (i = 0; i < YELP_SETTINGS_NUM_ICONS; i++) {
+    for (i = YELP_SETTINGS_NUM_ICONS_START;
+         i < YELP_SETTINGS_NUM_ICONS;
+         i++) {
         switch (i) {
         case YELP_SETTINGS_ICON_BUG:
             icon_names[i] = "yelp-note-bug";
@@ -613,7 +615,7 @@ yelp_gtk_settings_get_default (void)
     static YelpGtkSettings *settings = NULL;
     g_mutex_lock (&mutex);
     if (settings == NULL)
-        settings = g_object_new (YELP_TYPE_SETTINGS,
+        settings = g_object_new (YELP_TYPE_GTK_SETTINGS,
                                  "gtk-settings", gtk_settings_get_default (),
                                  "gtk-icon-theme", gtk_icon_theme_get_default (),
                                  NULL);
@@ -1286,6 +1288,7 @@ get_tokens (YelpSettings *settings)
     g_hash_table_iter_init (&iter, priv->tokens);
     while (g_hash_table_iter_next (&iter, (gpointer *)&token, NULL)) {
         tokens[idx] = g_strdup (token);
+        idx++;
     }
     return tokens;
 }
@@ -1311,7 +1314,7 @@ get_uri_for_gicon (YelpSettings *settings,
     g_assert (G_IS_ICON (icon));
 
     priv = GET_PRIV (YELP_GTK_SETTINGS (settings));
-    info = gtk_icon_theme_lookup_by_gicon (theme, icon, GTK_ICON_LOOKUP_NO_SVG);
+    info = gtk_icon_theme_lookup_by_gicon (priv->gtk_icon_theme, icon, 22, GTK_ICON_LOOKUP_NO_SVG);
 
     if (info == NULL)
         return NULL;
