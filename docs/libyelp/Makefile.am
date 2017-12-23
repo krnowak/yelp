@@ -10,22 +10,24 @@ DOC_SOURCE_DIR = $(top_srcdir)/libyelp
 
 GTKDOC_CFLAGS =						\
 	$(YELP_CFLAGS)					\
+	-I$(top_srcdir)/libyelp-core
 	-I$(top_srcdir)/libyelp
 
 GTKDOC_LIBS =					\
 	$(YELP_LIBS)				\
+	$(top_builddir)/libyelp-core/libyelp-core.la \
 	$(top_builddir)/libyelp/libyelp.la
 
 HFILE_GLOB = $(top_srcdir)/libyelp/*.h
 CFILE_GLOB = $(top_srcdir)/libyelp/*.c
-IGNORE_HFILES = yelp-common-types.h \
-	yelp-debug.h \
-	yelp-types.h \
-	$(top_srcdir)/libyelp/yelp-bz2-decompressor.h \
-	$(top_srcdir)/libyelp/yelp-lzma-decompressor.h \
-	$(top_srcdir)/libyelp/yelp-magic-decompressor.h
-IGNORE_CFILES = $(top_srcdir)/libyelp/yelp-lzma-decompressor.c \
-	$(top_srcdir)/libyelp/yelp-bz2-decompressor.c
+#IGNORE_HFILES = yelp-common-types.h \
+#	yelp-debug.h \
+#	yelp-types.h \
+#	$(top_srcdir)/libyelp/yelp-bz2-decompressor.h \
+#	$(top_srcdir)/libyelp/yelp-lzma-decompressor.h \
+#	$(top_srcdir)/libyelp/yelp-magic-decompressor.h
+#IGNORE_CFILES = $(top_srcdir)/libyelp/yelp-lzma-decompressor.c \
+#	$(top_srcdir)/libyelp/yelp-bz2-decompressor.c
 
 MKDB_OPTIONS = --output-format=xml --sgml-mode --name-space=yelp --ignore-files='yelp-debug.c yelp-debug.h yelp-types.c yelp-types.h'
 

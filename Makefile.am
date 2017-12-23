@@ -933,8 +933,8 @@ dist_noinst_DATA = \
 	data/mathjax/unpacked/jax/output/NativeMML/jax.js \
 	data/mathjax/LICENSE \
 	data/mathjax/README \
-	docs/libyelp-core/libyelp-docs.xml \
-	docs/libyelp-core/version.xml.in \
+	docs/libyelp/libyelp-docs.xml \
+	docs/libyelp/version.xml.in \
 	libyelp/yelp-marshal.list \
 	gtk-doc.make
 
