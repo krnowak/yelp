@@ -79,13 +79,13 @@ yelp
 /docs/libyelp/version.xml
 /docs/libyelp/xml/
 
+/libyelp-core/yelp-core-types.c
+/libyelp-core/yelp-core-types.h
+
+/libyelp/yelp-marshal.c
+/libyelp/yelp-marshal.h
 /libyelp/yelp-types.c
 /libyelp/yelp-types.h
-
-/libyelp-gui/yelp-marshal.c
-/libyelp-gui/yelp-marshal.h
-/libyelp-gui/yelp-gui-types.c
-/libyelp-gui/yelp-gui-types.h
 
 /po/*.gmo
 /po/.intltool-merge-cache

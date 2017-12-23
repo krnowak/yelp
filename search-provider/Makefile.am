@@ -1,5 +1,5 @@
 yelp_search_provider_CFLAGS = \
-	-I$(top_srcdir)/libyelp \
+	-I$(top_srcdir)/libyelp-core \
 	$(YELP_CFLAGS) \
 	$(YELP_GTK_CFLAGS) \
 	$(NULL)
@@ -24,7 +24,7 @@ yelp_search_provider_SOURCES = \
 	yelp-search-provider-settings.c \
 	$(NULL)
 
-yelp_search_provider_LDADD = $(YELP_LIBS) $(YELP_GTK_LIBS) ../libyelp/libyelp.la
+yelp_search_provider_LDADD = $(YELP_LIBS) $(YELP_GTK_LIBS) ../libyelp-core/libyelp-core.la
 
 searchproviderdir = $(datadir)/gnome-shell/search-providers
 searchprovider_DATA = yelp-search-provider.ini
