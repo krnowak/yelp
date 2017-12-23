@@ -324,23 +324,35 @@ tests_test_view_LDADD = \
 gtkdoc_builddir = $(top_builddir)/docs/libyelp
 gtkdoc_distdir = $(top_distdir)/docs/libyelp
 gtkdoc_srcdir = $(top_srcdir)/docs/libyelp
+gtkdoc_core_builddir = $(top_builddir)/docs/libyelp-core
+gtkdoc_core_distdir = $(top_distdir)/docs/libyelp-core
+gtkdoc_core_srcdir = $(top_srcdir)/docs/libyelp-core
 
 all-local: $(bin_PROGRAMS)
 	cd $(gtkdoc_builddir) && $(MAKE) $(AM_MAKEFLAGS) all
+	cd $(gtkdoc_core_builddir) && $(MAKE) $(AM_MAKEFLAGS) all
 check-local:
 	cd $(gtkdoc_builddir) && $(MAKE) $(AM_MAKEFLAGS) check
+	cd $(gtkdoc_core_builddir) && $(MAKE) $(AM_MAKEFLAGS) check
 clean-local:
 	cd $(gtkdoc_builddir) && if test -e Makefile ; then \
 		$(MAKE) $(AM_MAKEFLAGS) clean ; \
 	fi
+	cd $(gtkdoc_core_builddir) && if test -e Makefile ; then \
+		$(MAKE) $(AM_MAKEFLAGS) clean ; \
+	fi
 distclean-local:
 	cd $(gtkdoc_builddir) && $(MAKE) $(AM_MAKEFLAGS) distclean
+	cd $(gtkdoc_core_builddir) && $(MAKE) $(AM_MAKEFLAGS) distclean
 docs: $(lib_LTLIBRARIES)
 	cd $(gtkdoc_builddir) && $(MAKE) $(AM_MAKEFLAGS) docs
+	cd $(gtkdoc_core_builddir) && $(MAKE) $(AM_MAKEFLAGS) docs
 install-data-local:
 	cd $(gtkdoc_builddir) && $(MAKE) $(AM_MAKEFLAGS) install-data
+	cd $(gtkdoc_core_builddir) && $(MAKE) $(AM_MAKEFLAGS) install-data
 uninstall-local:
 	cd $(gtkdoc_builddir) && $(MAKE) $(AM_MAKEFLAGS) uninstall
+	cd $(gtkdoc_core_builddir) && $(MAKE) $(AM_MAKEFLAGS) uninstall
 
 dist-hook:
 	$(MKDIR_P) $(gtkdoc_distdir)
@@ -348,6 +360,12 @@ dist-hook:
 	cd $(gtkdoc_builddir) && $(MAKE) $(AM_MAKEFLAGS) \
 		distdir="../../$(gtkdoc_distdir)" \
 		top_distdir="../../$(top_distdir)" \
+		dist-hook
+	$(MKDIR_P) $(gtkdoc_core_distdir)
+	cp $(gtkdoc_core_srcdir)/Makefile.am $(gtkdoc_core_srcdir)/Makefile.in $(gtkdoc_core_distdir)
+	cd $(gtkdoc_core_builddir) && $(MAKE) $(AM_MAKEFLAGS) \
+		distdir="../../$(gtkdoc_core_distdir)" \
+		top_distdir="../../$(top_core_distdir)" \
 		dist-hook
 
 install-exec-hook:
@@ -934,7 +952,8 @@ dist_noinst_DATA = \
 	data/mathjax/LICENSE \
 	data/mathjax/README \
 	docs/libyelp/libyelp-docs.xml \
-	docs/libyelp/version.xml.in \
+	docs/libyelp-core/libyelp-core-docs.xml \
+	docs/version.xml.in \
 	libyelp/yelp-marshal.list \
 	gtk-doc.make
 

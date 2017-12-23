@@ -2,32 +2,30 @@ AUTOMAKE_OPTIONS = 1.6
 
 DOC_MODULE = libyelp
 
-DOC_MAIN_SGML_FILE = libyelp-docs.xml
+DOC_MAIN_SGML_FILE = libyelp-core-docs.xml
 
 SCAN_OPTIONS = --deprecated-guards="G_DISABLE_DEPRECATED" --rebuild-types
 
-DOC_SOURCE_DIR = $(top_srcdir)/libyelp
+DOC_SOURCE_DIR = $(top_srcdir)/libyelp-core
 
 GTKDOC_CFLAGS =						\
 	$(YELP_CFLAGS)					\
-	-I$(top_srcdir)/libyelp-core			\
-	-I$(top_srcdir)/libyelp
+	-I$(top_srcdir)/libyelp-core
 
 GTKDOC_LIBS =					\
 	$(YELP_LIBS)				\
-	$(top_builddir)/libyelp-core/libyelp-core.la \
-	$(top_builddir)/libyelp/libyelp.la
+	$(top_builddir)/libyelp-core/libyelp-core.la
 
-HFILE_GLOB = $(top_srcdir)/libyelp/*.h
-CFILE_GLOB = $(top_srcdir)/libyelp/*.c
-#IGNORE_HFILES = yelp-common-types.h \
-#	yelp-debug.h \
-#	yelp-types.h \
-#	$(top_srcdir)/libyelp/yelp-bz2-decompressor.h \
-#	$(top_srcdir)/libyelp/yelp-lzma-decompressor.h \
-#	$(top_srcdir)/libyelp/yelp-magic-decompressor.h
-#IGNORE_CFILES = $(top_srcdir)/libyelp/yelp-lzma-decompressor.c \
-#	$(top_srcdir)/libyelp/yelp-bz2-decompressor.c
+HFILE_GLOB = $(top_srcdir)/libyelp-core/*.h
+CFILE_GLOB = $(top_srcdir)/libyelp-core/*.c
+IGNORE_HFILES = \
+	$(top_srcdir)/libyelp-core/yelp-debug.h \
+	$(top_srcdir)/libyelp-core/yelp-core-types.h \
+	$(top_srcdir)/libyelp-core/yelp-bz2-decompressor.h \
+	$(top_srcdir)/libyelp-core/yelp-lzma-decompressor.h \
+	$(top_srcdir)/libyelp-core/yelp-magic-decompressor.h
+IGNORE_CFILES = $(top_srcdir)/libyelp-core/yelp-lzma-decompressor.c \
+	$(top_srcdir)/libyelp-core/yelp-bz2-decompressor.c
 
 MKDB_OPTIONS = --output-format=xml --sgml-mode --name-space=yelp --ignore-files='yelp-debug.c yelp-debug.h yelp-types.c yelp-types.h'
 
