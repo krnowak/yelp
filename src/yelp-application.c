@@ -122,13 +122,25 @@ open_uri (YelpApplication *app,
           gboolean         new_window,
           gboolean         fallback_help_list);
 
+static YelpUriResolveStubs
+get_resolve_stubs_from_settings (void)
+{
+    YelpSettings *settings;
+
+    settings = YELP_SETTINGS (yelp_gtk_settings_get_default ());
+    if (yelp_settings_get_editor_mode (settings))
+        return YELP_URI_RESOLVE_STUBS_ALLOW;
+
+    return YELP_URI_RESOLVE_STUBS_FORBID;
+}
+
 static void
 activate_show_page (GSimpleAction *action,
                     GVariant      *parameter,
                     gpointer       user_data)
 {
     YelpApplication *app = YELP_APPLICATION (user_data);
-    YelpUri *uri = yelp_uri_new (YELP_GNOME_HELP_URI);
+    YelpUri *uri = yelp_uri_new (YELP_GNOME_HELP_URI, get_resolve_stubs_from_settings ());
     gchar *xref = g_strconcat ("xref:", g_variant_get_string (parameter, NULL), NULL);
     YelpUri *page_uri = yelp_uri_new_relative (uri, xref);
 
@@ -144,7 +156,7 @@ activate_show_search (GSimpleAction *action,
                       gpointer       user_data)
 {
     YelpApplication *app = YELP_APPLICATION (user_data);
-    YelpUri *uri = yelp_uri_new (YELP_GNOME_HELP_URI);
+    YelpUri *uri = yelp_uri_new (YELP_GNOME_HELP_URI, get_resolve_stubs_from_settings());
     YelpUri *page_uri = yelp_uri_new_search (uri, g_variant_get_string (parameter, NULL));
 
     open_uri (app, page_uri, TRUE, FALSE);
@@ -458,18 +470,6 @@ open_uri (YelpApplication *app,
     g_application_hold (G_APPLICATION (app));
 
     yelp_uri_resolve (uri);
-}
-
-static YelpUriResolveStubs
-get_resolve_stubs_from_settings (void)
-{
-    YelpSettings *settings;
-
-    settings = YELP_SETTINGS (yelp_gtk_settings_get_default ());
-    if (yelp_settings_get_editor_mode (settings))
-        return YELP_URI_RESOLVE_STUBS_ALLOW;
-
-    return YELP_URI_RESOLVE_STUBS_FORBID;
 }
 
 static int

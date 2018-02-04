@@ -23,7 +23,7 @@ GLIB_GSETTINGS
 
 # Library dependecies
 LT_LIB_M
-PKG_CHECK_MODULES(YELP,
+PKG_CHECK_MODULES(YELP_CORE,
 [
 	gio-2.0 >= 2.38.0
 	gio-unix-2.0
@@ -33,17 +33,24 @@ PKG_CHECK_MODULES(YELP,
 	sqlite3
 	yelp-xsl >= 3.27.1
 ])
-AC_SUBST([YELP_CFLAGS])
-AC_SUBST([YELP_LIBS])
+AC_SUBST([YELP_CORE_CFLAGS])
+AC_SUBST([YELP_CORE_LIBS])
 
-PKG_CHECK_MODULES(YELP_GUI,
+PKG_CHECK_MODULES(YELP,
 [
 	gtk+-unix-print-3.0
 	gtk+-3.0 >= 3.13.3
 	webkit2gtk-4.0 >= 2.19.2
 ])
-AC_SUBST([YELP_GUI_CFLAGS])
-AC_SUBST([YELP_GUI_LIBS])
+AC_SUBST([YELP_CFLAGS])
+AC_SUBST([YELP_LIBS])
+
+PKG_CHECK_MODULES(YELP_GTK,
+[
+	gtk+-3.0 >= 3.13.3
+])
+AC_SUBST([YELP_GTK_CFLAGS])
+AC_SUBST([YELP_GTK_LIBS])
 
 
 # Initialize libtool
@@ -160,7 +167,8 @@ GTK_DOC_CHECK([1.13],[--flavour no-tmpl])
 AC_CONFIG_FILES([
 Makefile
 docs/libyelp/Makefile
-docs/libyelp/version.xml
+docs/libyelp-core/Makefile
+docs/version.xml
 data/dtd/catalog
 data/xslt/db2html.xsl
 data/xslt/info2html.xsl

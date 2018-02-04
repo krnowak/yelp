@@ -39,7 +39,7 @@
 #include "yelp-gtk-settings.h"
 #include "yelp-marshal.h"
 #include "yelp-settings.h"
-#include "yelp-gui-types.h"
+#include "yelp-types.h"
 #include "yelp-view.h"
 #include "yelp-uri-builder.h"
 
