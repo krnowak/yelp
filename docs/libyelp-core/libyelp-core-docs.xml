@@ -2,12 +2,12 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
                "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd"
 [
-<!ENTITY version SYSTEM "../version.xml">
+<!ENTITY version SYSTEM "version.xml">
 ]>
 <book id="index">
   <bookinfo>
     <title>Yelp Reference Manual</title>
-    <releaseinfo>for libyelp &version;</releaseinfo>
+    <releaseinfo>for libyelp core &version;</releaseinfo>
   </bookinfo>
 
   <chapter>
