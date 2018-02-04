@@ -1,6 +1,7 @@
 yelp_search_provider_CFLAGS = \
-	-I$(top_srcdir)/libyelp \
+	-I$(top_srcdir)/libyelp-core \
 	$(YELP_CFLAGS) \
+	$(YELP_GTK_CFLAGS) \
 	$(NULL)
 
 libexec_PROGRAMS = yelp-search-provider
@@ -20,9 +21,10 @@ $(dbus_shell_search_provider_built_sources) : Makefile.am $(srcdir)/org.gnome.Sh
 yelp_search_provider_SOURCES = \
 	$(dbus_shell_search_provider_built_sources) \
 	yelp-search-provider.c \
+	yelp-search-provider-settings.c \
 	$(NULL)
 
-yelp_search_provider_LDADD = $(YELP_LIBS) ../libyelp/libyelp.la
+yelp_search_provider_LDADD = $(YELP_LIBS) $(YELP_GTK_LIBS) ../libyelp-core/libyelp-core.la
 
 searchproviderdir = $(datadir)/gnome-shell/search-providers
 searchprovider_DATA = yelp-search-provider.ini

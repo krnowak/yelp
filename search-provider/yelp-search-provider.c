@@ -26,6 +26,7 @@
 #include <gtk/gtk.h>
 
 #include "yelp-shell-search-provider-generated.h"
+#include "yelp-search-provider-settings.h"
 
 #include "yelp-settings.h"
 #include "yelp-document.h"
@@ -397,8 +398,7 @@ get_file_icon_for_page_id (YelpDocument *document,
     GFile *icon_file;
     GIcon *icon;
 
-    g_object_get (yelp_settings_get_default (), "gtk-icon-theme", &icon_theme, NULL);
-
+    icon_theme = gtk_icon_theme_get_default ();
     icon_name = yelp_document_get_page_icon (document, page_id);
     if (!icon_name) {
         g_warning ("Couldn't find icon for help page %s", page_id);
@@ -487,8 +487,10 @@ uri_resolved_cb (YelpUri               *uri,
 {
     YelpDocument *doc;
     gchar *page_id;
+    YelpSettings *settings = YELP_SETTINGS (yelp_search_provider_settings_new ());
 
-    doc = yelp_document_get_for_uri (uri);
+    doc = yelp_document_get_for_uri (uri, settings);
+    g_object_unref (settings);
     g_signal_handler_disconnect (uri, app->uri_resolve_id);
     app->uri_resolve_id = 0;
     page_id = yelp_uri_get_page_id (uri);
@@ -514,7 +516,8 @@ search_provider_app_startup (GApplication *app)
     if (g_getenv ("YELP_SEARCH_PROVIDER_PERSIST") != NULL)
         g_application_hold (app);
 
-    base_uri = yelp_uri_new (YELP_GNOME_HELP_URI);
+    base_uri = yelp_uri_new (YELP_GNOME_HELP_URI,
+                             YELP_URI_RESOLVE_STUBS_FORBID);
     self->uri_resolve_id = g_signal_connect_object (base_uri,
                                                     "resolved",
                                                     G_CALLBACK (uri_resolved_cb),
@@ -616,8 +619,7 @@ main (int    argc,
     GApplication *app;
     gint res;
 
-    gtk_init (&argc, &argv);
-    yelp_settings_get_default ();
+    gtk_init (NULL, NULL);
     app = yelp_search_provider_app_new ();
     res = g_application_run (app, argc, argv);
 
